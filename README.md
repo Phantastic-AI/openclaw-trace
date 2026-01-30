@@ -1,5 +1,7 @@
 # rlm-session-analyzer (minimal)
 
+> **NOTE (AI-GENERATED, UNREVIEWED):** This repository was produced largely/entirely by LLMs as a quick prototype. It is **not** a polished codebase. Expect rough edges, inconsistent style, missing tests, and potential bugs/security issues. Use at your own risk.
+
 A minimal **RLM-style** (recursive tool-using loop) analyzer for **Clawdbot** session transcripts saved as **JSONL**.
 
 Goal: given a gigantic session trace, reconstruct **phases / branches / failures** during a task such as *"creating a research paper"*.
@@ -57,12 +59,11 @@ The output is JSON with a top-level `result` containing:
 
 ## Mine research ideas across many sessions (PII-safe)
 
-This mode crawls a directory of session `.jsonl` files, performs a lightweight deterministic keyword scan using `Transcript.search()`, builds **PII-redacted** synopses for each candidate segment, and (optionally) asks an OpenAI-compatible LLM to propose **frontier AI research experiment ideas**.
+This mode crawls a directory of session `.jsonl` files, performs a lightweight deterministic keyword scan using `Transcript.search()`, builds short synopses for each candidate segment, and (optionally) asks an OpenAI-compatible LLM to propose **frontier AI research experiment ideas**.
 
-Safety properties:
-- Redaction runs **before** any LLM call.
-- Snippets are truncated (never emit long raw logs).
-- A final validator re-scans outputs and drops lines that still match PII/secret patterns.
+Per ninjaa’s plan: for internal one-time runs we **do not aggressively pre-scrub** content before synthesis (idea quality > maximal privacy), but we still:
+- truncate snippets (never emit long raw logs)
+- optionally scrub outputs with `--scrub-output` (default: off)
 
 Example invocation:
 
@@ -75,6 +76,15 @@ claw-trace mine-ideas \
   --no-llm \
   --out-json out_mine_ideas.json \
   --out-md out_mine_ideas.md
+
+# Optional: scrub outputs (JSON + Markdown) for PII-ish patterns
+claw-trace mine-ideas \
+  --sessions-dir /home/debian/.clawdbot/agents/main/sessions \
+  --include "**/*.jsonl" \
+  --max-sessions 200 \
+  --scrub-output \
+  --out-json out_mine_ideas_scrubbed.json \
+  --out-md out_mine_ideas_scrubbed.md
 ```
 
 To enable LLM idea generation, omit `--no-llm` and set `OPENAI_API_KEY`.
