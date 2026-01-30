@@ -99,7 +99,17 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
     ap.add_argument("--max-sessions", type=int, default=None)
     ap.add_argument("--max-matches-per-session", type=int, default=40)
     ap.add_argument("--max-snippet-chars", type=int, default=800)
-    ap.add_argument("--no-llm", action="store_true", help="Only do deterministic candidate extraction + redacted synopses")
+    ap.add_argument("--no-llm", action="store_true", help="Only do deterministic candidate extraction + synopses")
+    ap.add_argument(
+        "--scrub-output",
+        action="store_true",
+        help="(Optional) scrub PII-ish patterns from JSON/Markdown outputs and drop offending lines. Default: off.",
+    )
+    ap.add_argument(
+        "--no-scrub",
+        action="store_true",
+        help="Alias for default behavior (do not scrub outputs).",
+    )
     ap.add_argument("--llm", choices=["openai", "none"], default="openai")
     ap.add_argument("--temperature", type=float, default=0.0)
     ap.add_argument(
@@ -127,6 +137,8 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
 
     llm = NoLLMClient() if (args.llm == "none" or args.no_llm) else _build_llm(args.llm)
 
+    scrub_output = bool(args.scrub_output) and not bool(args.no_scrub)
+
     cfg = MineIdeasConfig(
         sessions_dir=Path(args.sessions_dir),
         include=args.include or [],
@@ -136,11 +148,12 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
         max_snippet_chars=args.max_snippet_chars,
         use_llm=not args.no_llm and args.llm != "none",
         temperature=args.temperature,
+        scrub_output=scrub_output,
     )
 
     report = mine_ideas(llm=llm, cfg=cfg, keywords=kw)
     Path(args.out_json).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
-    Path(args.out_md).write_text(render_markdown(report), encoding="utf-8")
+    Path(args.out_md).write_text(render_markdown(report, scrub_output=scrub_output), encoding="utf-8")
 
 
 def main() -> None:
