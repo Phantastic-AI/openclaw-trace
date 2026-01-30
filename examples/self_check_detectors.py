@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from rlm_session_analyzer.transcript import load_transcript, detect_failures, detect_tool_calls
+from openclaw_trace.transcript import load_transcript, detect_failures, detect_tool_calls
 
 
 def main() -> int:

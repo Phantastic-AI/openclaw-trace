@@ -10,31 +10,22 @@ from .recursive_driver import DriverConfig, RecursiveAnalyzer
 from .transcript import load_transcript
 
 
-def main_deprecated() -> None:
-    """Backwards-compatible entrypoint for the old `rlm-analyze` script name."""
-    print(
-        "DEPRECATED: `rlm-analyze` has been renamed to `claw-trace`. "
-        "Please update your scripts.\n",
-        file=sys.stderr,
-    )
-    main()
-
-
 def _build_llm(kind: str) -> object:
     if kind == "openai":
         try:
             return OpenAICompatClient()
         except Exception:
+            # If API env is missing/misconfigured, fall back to a deterministic stub.
             return NoLLMClient()
     return NoLLMClient()
 
 
 def _cmd_analyze(argv: list[str]) -> None:
     ap = argparse.ArgumentParser(
-        prog="claw-trace analyze",
-        description="RLM-style analyzer for a single Clawdbot session transcript (jsonl).",
+        prog="openclaw-trace analyze",
+        description="RLM-inspired analyzer for a single OpenClaw/Clawdbot session transcript (jsonl).",
     )
-    ap.add_argument("transcriptPath", help="Path to a Clawdbot session transcript .jsonl")
+    ap.add_argument("transcriptPath", help="Path to a session transcript .jsonl")
     ap.add_argument("--objective", default="Reconstruct phases/branches/failures while creating a research paper.")
     ap.add_argument("--max-events", type=int, default=None, help="Load only first N events (debug)")
     ap.add_argument("--max-iters", type=int, default=6)
@@ -76,13 +67,13 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
     from .mine_ideas import DEFAULT_KEYWORDS, MineIdeasConfig, mine_ideas, render_markdown
 
     ap = argparse.ArgumentParser(
-        prog="claw-trace mine-ideas",
-        description="Crawl many Clawdbot session jsonl files and mine frontier experiment ideas (PII-safe).",
+        prog="openclaw-trace mine-ideas",
+        description="Crawl many session jsonl files and mine frontier experiment ideas (PII-safe).",
     )
     ap.add_argument(
         "--sessions-dir",
         default="/home/debian/.clawdbot/agents/main/sessions",
-        help="Directory containing Clawdbot session .jsonl files",
+        help="Directory containing session .jsonl files",
     )
     ap.add_argument(
         "--include",
@@ -100,16 +91,6 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
     ap.add_argument("--max-matches-per-session", type=int, default=40)
     ap.add_argument("--max-snippet-chars", type=int, default=800)
     ap.add_argument("--no-llm", action="store_true", help="Only do deterministic candidate extraction + synopses")
-    ap.add_argument(
-        "--scrub-output",
-        action="store_true",
-        help="(Optional) scrub PII-ish patterns from JSON/Markdown outputs and drop offending lines. Default: off.",
-    )
-    ap.add_argument(
-        "--no-scrub",
-        action="store_true",
-        help="Alias for default behavior (do not scrub outputs).",
-    )
     ap.add_argument("--llm", choices=["openai", "none"], default="openai")
     ap.add_argument("--temperature", type=float, default=0.0)
     ap.add_argument(
@@ -137,8 +118,6 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
 
     llm = NoLLMClient() if (args.llm == "none" or args.no_llm) else _build_llm(args.llm)
 
-    scrub_output = bool(args.scrub_output) and not bool(args.no_scrub)
-
     cfg = MineIdeasConfig(
         sessions_dir=Path(args.sessions_dir),
         include=args.include or [],
@@ -148,31 +127,32 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
         max_snippet_chars=args.max_snippet_chars,
         use_llm=not args.no_llm and args.llm != "none",
         temperature=args.temperature,
-        scrub_output=scrub_output,
+        # No CLI flag: always scrub report outputs.
+        scrub_output=True,
     )
 
     report = mine_ideas(llm=llm, cfg=cfg, keywords=kw)
     Path(args.out_json).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
-    Path(args.out_md).write_text(render_markdown(report, scrub_output=scrub_output), encoding="utf-8")
+    Path(args.out_md).write_text(render_markdown(report, scrub_output=True), encoding="utf-8")
 
 
 def main() -> None:
-    # Backwards-compatible behavior:
-    # - `claw-trace <transcriptPath> [flags]` -> analyze
-    # New subcommands:
-    # - `claw-trace analyze ...`
-    # - `claw-trace mine-ideas ...`
+    # Convenience behavior:
+    # - `openclaw-trace <transcriptPath> [flags]` -> analyze
+    # Subcommands:
+    # - `openclaw-trace analyze ...`
+    # - `openclaw-trace mine-ideas ...`
     if len(sys.argv) >= 2 and sys.argv[1] not in {"analyze", "mine-ideas", "mine_ideas", "-h", "--help"}:
         _cmd_analyze(sys.argv[1:])
         return
 
-    ap = argparse.ArgumentParser(prog="claw-trace")
+    ap = argparse.ArgumentParser(prog="openclaw-trace")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("analyze", help="Analyze a single transcript (existing functionality)")
+    sub.add_parser("analyze", help="Analyze a single transcript")
     sub.add_parser("mine-ideas", help="Mine research experiment ideas from many sessions (PII-safe)")
 
-    ns, rest = ap.parse_known_args(sys.argv[1:2])
+    ns, _rest = ap.parse_known_args(sys.argv[1:2])
 
     if ns.cmd == "analyze":
         _cmd_analyze(sys.argv[2:])

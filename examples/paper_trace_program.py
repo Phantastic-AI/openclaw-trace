@@ -1,4 +1,4 @@
-# Deterministic analysis program for claw-trace (formerly rlm-analyze)
+# Deterministic analysis program for openclaw-trace
 # Expects helper functions: search(), window(), detect_tool_calls(), detect_failures(), summarize_span(), N
 
 # search() returns list[dict] with at least: {index, preview, keys, _line_no}

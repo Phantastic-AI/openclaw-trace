@@ -1,4 +1,4 @@
-from rlm_session_analyzer.redaction import self_check_redaction
+from openclaw_trace.redaction import self_check_redaction
 
 
 if __name__ == "__main__":

@@ -49,7 +49,7 @@ class MineIdeasConfig:
     max_snippet_chars: int = 800
     use_llm: bool = True
     temperature: float = 0.0
-    scrub_output: bool = False
+    scrub_output: bool = True
 
 
 def _iter_session_files(cfg: MineIdeasConfig) -> list[Path]:
@@ -283,7 +283,7 @@ def mine_ideas(*, llm: LLMClient | None, cfg: MineIdeasConfig, keywords: list[st
 
 def render_markdown(report: Json, *, scrub_output: bool | None = None) -> str:
     lines: list[str] = []
-    lines.append("# claw-trace mine-ideas report")
+    lines.append("# openclaw-trace mine-ideas report")
     lines.append("")
     lines.append(f"- sessionsDir: `{report.get('sessionsDir')}`")
     lines.append(f"- sessionsMatched: `{len(report.get('results', []))}`")

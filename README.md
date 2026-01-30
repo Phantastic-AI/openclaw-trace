@@ -33,24 +33,18 @@ export OPENAI_MODEL="gpt-4.1-mini"
 export OPENAI_BASE_URL="https://api.openai.com/v1"
 ```
 
-Run analysis (single transcript):
+Analyze a single transcript:
 
 ```bash
-claw-trace analyze /path/to/session.jsonl \
+openclaw-trace analyze /path/to/session.jsonl \
   --objective "Reconstruct phases/branches/failures of creating a research paper" \
   --out analysis.json
 ```
 
-Legacy (still supported):
+Convenience form (same as `analyze`):
 
 ```bash
-claw-trace /path/to/session.jsonl --out analysis.json
-```
-
-Backwards-compatible alias (deprecated):
-
-```bash
-rlm-analyze /path/to/session.jsonl --out analysis.json
+openclaw-trace /path/to/session.jsonl --out analysis.json
 ```
 
 The output is JSON with a top-level `result` containing:
@@ -61,12 +55,12 @@ The output is JSON with a top-level `result` containing:
 
 This mode crawls a directory of `.jsonl` traces, does a lightweight keyword scan, builds short synopses, and (optionally) asks an OpenAI-compatible LLM to propose **frontier experiment ideas**.
 
-By default, this is aimed at **one-time internal reading** (outputs are short summaries, not full transcripts). Optional output scrubbing exists, but is not the focus.
+Outputs are **scrubbed by default** (PII-ish patterns are redacted, and any remaining suspicious lines may be dropped during final validation).
 
 Example invocation:
 
 ```bash
-claw-trace mine-ideas \
+openclaw-trace mine-ideas \
   --sessions-dir /home/debian/.clawdbot/agents/main/sessions \
   --include "**/*.jsonl" \
   --exclude "**/node_modules/**" \
@@ -74,15 +68,6 @@ claw-trace mine-ideas \
   --no-llm \
   --out-json out_mine_ideas.json \
   --out-md out_mine_ideas.md
-
-# Optional: scrub outputs (JSON + Markdown) for PII-ish patterns
-claw-trace mine-ideas \
-  --sessions-dir /home/debian/.clawdbot/agents/main/sessions \
-  --include "**/*.jsonl" \
-  --max-sessions 200 \
-  --scrub-output \
-  --out-json out_mine_ideas_scrubbed.json \
-  --out-md out_mine_ideas_scrubbed.md
 ```
 
 To enable LLM idea generation, omit `--no-llm` and set `OPENAI_API_KEY`.
@@ -94,7 +79,7 @@ If `OPENAI_API_KEY` is missing, the tool falls back to a deterministic stub.
 You can still use it by supplying your own analysis program:
 
 ```bash
-claw-trace analyze /path/to/session.jsonl --llm none --program examples/paper_program.py
+openclaw-trace analyze /path/to/session.jsonl --llm none --program examples/paper_program.py
 ```
 
 ## Writing a custom analyzer program

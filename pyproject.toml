@@ -1,7 +1,7 @@
 [project]
-name = "rlm-session-analyzer"
+name = "openclaw-trace"
 version = "0.1.0"
-description = "Minimal RLM-style analyzer for Clawdbot session transcripts (jsonl)."
+description = "RLM-inspired analyzer for OpenClaw/Clawdbot session transcripts (jsonl)."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -10,10 +10,7 @@ dependencies = [
 ]
 
 [project.scripts]
-# Preferred CLI name
-claw-trace = "rlm_session_analyzer.cli:main"
-# Backwards-compatible alias (deprecated)
-rlm-analyze = "rlm_session_analyzer.cli:main_deprecated"
+openclaw-trace = "openclaw_trace.cli:main"
 
 [build-system]
 requires = ["setuptools>=68"]
