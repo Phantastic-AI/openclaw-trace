@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtualenv
+.venv/
+
+# Build / packaging
+*.egg-info/
+dist/
+build/
+
+# Outputs / artifacts
+out_*.json
+out_*.md
+
+# OS
+.DS_Store

@@ -1,0 +1,20 @@
+[project]
+name = "rlm-session-analyzer"
+version = "0.1.0"
+description = "Minimal RLM-style analyzer for Clawdbot session transcripts (jsonl)."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "pydantic>=2.0",
+  "httpx>=0.25",
+]
+
+[project.scripts]
+# Preferred CLI name
+claw-trace = "rlm_session_analyzer.cli:main"
+# Backwards-compatible alias (deprecated)
+rlm-analyze = "rlm_session_analyzer.cli:main_deprecated"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
