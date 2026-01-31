@@ -68,7 +68,7 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
 
     ap = argparse.ArgumentParser(
         prog="openclaw-trace mine-ideas",
-        description="Crawl many session jsonl files and mine frontier experiment ideas (PII-safe).",
+        description="Crawl many session jsonl files and mine frontier experiment ideas.",
     )
     ap.add_argument(
         "--sessions-dir",
@@ -127,30 +127,23 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
         max_snippet_chars=args.max_snippet_chars,
         use_llm=not args.no_llm and args.llm != "none",
         temperature=args.temperature,
-        # No CLI flag: always scrub report outputs.
-        scrub_output=True,
     )
 
     report = mine_ideas(llm=llm, cfg=cfg, keywords=kw)
     Path(args.out_json).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
-    Path(args.out_md).write_text(render_markdown(report, scrub_output=True), encoding="utf-8")
+    Path(args.out_md).write_text(render_markdown(report), encoding="utf-8")
 
 
 def main() -> None:
-    # Convenience behavior:
-    # - `openclaw-trace <transcriptPath> [flags]` -> analyze
-    # Subcommands:
+    # Single, explicit CLI surface (no legacy aliases or implicit dispatch).
+    # Use:
     # - `openclaw-trace analyze ...`
     # - `openclaw-trace mine-ideas ...`
-    if len(sys.argv) >= 2 and sys.argv[1] not in {"analyze", "mine-ideas", "mine_ideas", "-h", "--help"}:
-        _cmd_analyze(sys.argv[1:])
-        return
-
     ap = argparse.ArgumentParser(prog="openclaw-trace")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("analyze", help="Analyze a single transcript")
-    sub.add_parser("mine-ideas", help="Mine research experiment ideas from many sessions (PII-safe)")
+    sub.add_parser("mine-ideas", help="Mine frontier experiment ideas from many traces")
 
     ns, _rest = ap.parse_known_args(sys.argv[1:2])
 

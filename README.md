@@ -41,12 +41,6 @@ openclaw-trace analyze /path/to/session.jsonl \
   --out analysis.json
 ```
 
-Convenience form (same as `analyze`):
-
-```bash
-openclaw-trace /path/to/session.jsonl --out analysis.json
-```
-
 The output is JSON with a top-level `result` containing:
 - `FINAL`: narrative summary
 - `PHASES`: structured phase list (if produced)
@@ -55,7 +49,7 @@ The output is JSON with a top-level `result` containing:
 
 This mode crawls a directory of `.jsonl` traces, does a lightweight keyword scan, builds short synopses, and (optionally) asks an OpenAI-compatible LLM to propose **frontier experiment ideas**.
 
-Outputs are **scrubbed by default** (PII-ish patterns are redacted, and any remaining suspicious lines may be dropped during final validation).
+Outputs are short summaries (not full transcripts). If you need privacy guarantees, add your own redaction step.
 
 Example invocation:
 
