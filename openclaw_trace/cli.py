@@ -78,7 +78,7 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
     ap.add_argument(
         "--include",
         action="append",
-        default=["**/*.jsonl"],
+        default=["*.jsonl", "**/*.jsonl"],
         help="Glob(s) relative to sessions-dir to include (repeatable)",
     )
     ap.add_argument(
