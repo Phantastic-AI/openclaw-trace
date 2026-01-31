@@ -90,7 +90,7 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
     ap.add_argument("--max-sessions", type=int, default=None)
     ap.add_argument("--max-matches-per-session", type=int, default=40)
     ap.add_argument("--max-snippet-chars", type=int, default=800)
-    ap.add_argument("--no-llm", action="store_true", help="Only do deterministic candidate extraction + synopses")
+    ap.add_argument("--dry-run", action="store_true", help="Only scan traces + write candidate segments (no LLM)")
     ap.add_argument("--llm", choices=["openai", "none"], default="openai")
     ap.add_argument("--temperature", type=float, default=0.0)
     ap.add_argument(
@@ -116,7 +116,7 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
 
     kw = [k.strip() for k in (args.keywords or "").split(",") if k.strip()]
 
-    llm = NoLLMClient() if (args.llm == "none" or args.no_llm) else _build_llm(args.llm)
+    llm = NoLLMClient() if (args.llm == "none" or args.dry_run) else _build_llm(args.llm)
 
     cfg = MineIdeasConfig(
         sessions_dir=Path(args.sessions_dir),
@@ -125,11 +125,19 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
         max_sessions=args.max_sessions,
         max_matches_per_session=args.max_matches_per_session,
         max_snippet_chars=args.max_snippet_chars,
-        use_llm=not args.no_llm and args.llm != "none",
+        use_llm=not args.dry_run and args.llm != "none",
         temperature=args.temperature,
     )
 
     report = mine_ideas(llm=llm, cfg=cfg, keywords=kw)
+
+    # Always print a tiny sanity line so it's obvious what we scanned.
+    try:
+        matched = len(report.get("results", []))
+    except Exception:
+        matched = "?"
+    print(f"[openclaw-trace] mine-ideas: sessionsDir={cfg.sessions_dir} matched={matched}", file=sys.stderr)
+
     Path(args.out_json).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     Path(args.out_md).write_text(render_markdown(report), encoding="utf-8")
 
