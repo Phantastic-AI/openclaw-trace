@@ -187,7 +187,16 @@ def mine_ideas(*, llm: LLMClient | None, cfg: MineIdeasConfig, keywords: list[st
 
     for p in files:
         transcript = load_transcript(p)
-        hits = transcript.search(pat, limit=cfg.max_matches_per_session)
+
+        # Deterministic candidate mining: scan extracted event text.
+        hits: list[tuple[int, Json]] = []
+        for i in range(transcript.n):
+            if len(hits) >= cfg.max_matches_per_session:
+                break
+            ev = transcript.event(i)
+            if pat.search(_event_text(ev)):
+                hits.append((i, ev))
+
         if not hits:
             continue
 
