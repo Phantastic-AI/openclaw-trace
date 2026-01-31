@@ -188,14 +188,27 @@ def mine_ideas(*, llm: LLMClient | None, cfg: MineIdeasConfig, keywords: list[st
     for p in files:
         transcript = load_transcript(p)
 
-        # Deterministic candidate mining: scan extracted event text.
+        # Deterministic candidate mining: scan extracted event text + obvious failures.
         hits: list[tuple[int, Json]] = []
         for i in range(transcript.n):
             if len(hits) >= cfg.max_matches_per_session:
                 break
             ev = transcript.event(i)
+
+            # Keyword hits.
             if pat.search(_event_text(ev)):
                 hits.append((i, ev))
+                continue
+
+            # Failure hits (cheap heuristic): toolResult errors / nonzero exit.
+            m = ev.get("message")
+            if isinstance(m, dict) and m.get("role") == "toolResult":
+                det = m.get("details")
+                is_err = bool(m.get("isError"))
+                status_err = isinstance(det, dict) and det.get("status") == "error"
+                exit_bad = isinstance(det, dict) and isinstance(det.get("exitCode"), int) and det.get("exitCode") != 0
+                if is_err or status_err or exit_bad:
+                    hits.append((i, ev))
 
         if not hits:
             continue
