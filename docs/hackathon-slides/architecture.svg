@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;family=Sora:wght@400;600&amp;display=swap');
+    .title { font-family: 'Sora', sans-serif; font-weight: 600; }
+    .label { font-family: 'Sora', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+  
+  <!-- Background -->
+  <rect width="1000" height="500" fill="#0a0a0f"/>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00f5d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00d4aa;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="magentaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f72585;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b5179e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b35;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f7931e;stop-opacity:1" />
+    </linearGradient>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f72585"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="500" fill="url(#grid)"/>
+  
+  <!-- Title -->
+  <text x="500" y="35" fill="#f0f0f5" class="title" font-size="18" text-anchor="middle">openclaw-trace: Recursive Self-Improvement Architecture</text>
+  
+  <!-- Session Traces (left) -->
+  <rect x="30" y="180" width="140" height="140" rx="12" fill="#12121a" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="100" y="235" fill="#8888a0" class="mono" font-size="11" text-anchor="middle">Session</text>
+  <text x="100" y="253" fill="#f0f0f5" class="mono" font-size="13" text-anchor="middle">JSONL</text>
+  <text x="100" y="285" fill="#00f5d4" class="mono" font-size="10" text-anchor="middle">📄 traces</text>
+  
+  <!-- Arrow 1 -->
+  <path d="M 175 250 L 215 250" stroke="#f72585" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Mine Signals -->
+  <rect x="220" y="160" width="150" height="180" rx="12" fill="#12121a" stroke="url(#cyanGrad)" stroke-width="2"/>
+  <text x="295" y="195" fill="#00f5d4" class="title" font-size="14" text-anchor="middle">mine-signals</text>
+  <text x="295" y="220" fill="#8888a0" class="mono" font-size="10" text-anchor="middle">LLM + heuristics</text>
+  <line x1="250" y1="235" x2="340" y2="235" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="295" y="258" fill="#8888a0" class="mono" font-size="9" text-anchor="middle">→ error</text>
+  <text x="295" y="273" fill="#8888a0" class="mono" font-size="9" text-anchor="middle">→ user_frustration</text>
+  <text x="295" y="288" fill="#8888a0" class="mono" font-size="9" text-anchor="middle">→ improvement_suggestion</text>
+  <text x="295" y="303" fill="#8888a0" class="mono" font-size="9" text-anchor="middle">→ proactive_opportunity</text>
+  <text x="295" y="318" fill="#8888a0" class="mono" font-size="9" text-anchor="middle">→ user_delight</text>
+  
+  <!-- Arrow 2 -->
+  <path d="M 375 250 L 415 250" stroke="#f72585" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Rollup -->
+  <rect x="420" y="180" width="130" height="140" rx="12" fill="#12121a" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="485" y="225" fill="#f0f0f5" class="title" font-size="13" text-anchor="middle">rollup</text>
+  <text x="485" y="248" fill="#8888a0" class="mono" font-size="10" text-anchor="middle">cluster + rank</text>
+  <line x1="440" y1="263" x2="530" y2="263" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="485" y="285" fill="#ff6b35" class="mono" font-size="10" text-anchor="middle">fingerprints</text>
+  <text x="485" y="303" fill="#8888a0" class="mono" font-size="9" text-anchor="middle">idempotent</text>
+  
+  <!-- Arrow 3 -->
+  <path d="M 555 250 L 595 250" stroke="#f72585" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Research Briefs -->
+  <rect x="600" y="160" width="150" height="180" rx="12" fill="#12121a" stroke="url(#magentaGrad)" stroke-width="2"/>
+  <text x="675" y="195" fill="#f72585" class="title" font-size="14" text-anchor="middle">research briefs</text>
+  <text x="675" y="220" fill="#8888a0" class="mono" font-size="10" text-anchor="middle">actor-critic</text>
+  <line x1="625" y1="235" x2="725" y2="235" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="675" y="258" fill="#8888a0" class="mono" font-size="9" text-anchor="middle">1. Claude drafts</text>
+  <text x="675" y="276" fill="#8888a0" class="mono" font-size="9" text-anchor="middle">2. Codex critiques</text>
+  <text x="675" y="294" fill="#8888a0" class="mono" font-size="9" text-anchor="middle">3. Claude revises</text>
+  <text x="675" y="320" fill="#00f5d4" class="mono" font-size="9" text-anchor="middle">evidence-first</text>
+  
+  <!-- Arrow 4 -->
+  <path d="M 755 250 L 795 250" stroke="#f72585" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Experiments/Fixes -->
+  <rect x="800" y="180" width="140" height="140" rx="12" fill="#12121a" stroke="url(#orangeGrad)" stroke-width="2"/>
+  <text x="870" y="218" fill="#ff6b35" class="title" font-size="14" text-anchor="middle">experiments</text>
+  <text x="870" y="240" fill="#8888a0" class="mono" font-size="10" text-anchor="middle">+ verified fixes</text>
+  <line x1="820" y1="252" x2="920" y2="252" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="870" y="272" fill="#ffcc00" class="mono" font-size="9" text-anchor="middle">🐝 Weave traces</text>
+  <text x="870" y="290" fill="#dc382d" class="mono" font-size="9" text-anchor="middle">⬡ Redis state</text>
+  <text x="870" y="310" fill="#f0f0f5" class="mono" font-size="10" text-anchor="middle">measure Δ</text>
+  
+  <!-- Feedback loop arrow (bottom) -->
+  <path d="M 870 325 L 870 410 L 100 410 L 100 325" stroke="url(#cyanGrad)" stroke-width="2" fill="none" stroke-dasharray="8,4"/>
+  <polygon points="100,325 95,335 105,335" fill="#00f5d4"/>
+  <text x="485" y="435" fill="#00f5d4" class="mono" font-size="11" text-anchor="middle">recursive improvement loop → mine again</text>
+  
+  <!-- W&B Weave badge -->
+  <rect x="770" y="70" width="100" height="40" rx="8" fill="rgba(255,204,0,0.1)" stroke="rgba(255,204,0,0.4)" stroke-width="1"/>
+  <text x="820" y="95" fill="#ffcc00" class="mono" font-size="10" text-anchor="middle">🐝 Weave</text>
+  
+  <!-- Redis badge -->
+  <rect x="880" y="70" width="90" height="40" rx="8" fill="rgba(220,56,45,0.1)" stroke="rgba(220,56,45,0.4)" stroke-width="1"/>
+  <text x="925" y="95" fill="#dc382d" class="mono" font-size="10" text-anchor="middle">⬡ Redis</text>
+  
+  <!-- Dotted lines to experiments -->
+  <path d="M 820 110 L 820 140 L 870 140 L 870 175" stroke="rgba(255,204,0,0.4)" stroke-width="1.5" stroke-dasharray="4,4" fill="none"/>
+  <path d="M 925 110 L 925 140 L 870 140" stroke="rgba(220,56,45,0.4)" stroke-width="1.5" stroke-dasharray="4,4" fill="none"/>
+  
+  <!-- Legend -->
+  <rect x="30" y="440" width="12" height="12" rx="2" fill="#00f5d4"/>
+  <text x="48" y="450" fill="#8888a0" class="mono" font-size="9">LLM-powered</text>
+  <rect x="140" y="440" width="12" height="12" rx="2" fill="#f72585"/>
+  <text x="158" y="450" fill="#8888a0" class="mono" font-size="9">Actor-critic</text>
+  <rect x="250" y="440" width="12" height="12" rx="2" fill="#ff6b35"/>
+  <text x="268" y="450" fill="#8888a0" class="mono" font-size="9">Experiments (Weave-traced)</text>
+</svg>

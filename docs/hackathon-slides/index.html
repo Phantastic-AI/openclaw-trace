@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>openclaw-trace | Self-Improving Agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0a0f;
+      --bg-card: #12121a;
+      --accent-cyan: #00f5d4;
+      --accent-magenta: #f72585;
+      --accent-orange: #ff6b35;
+      --accent-purple: #7b2cbf;
+      --text-primary: #f0f0f5;
+      --text-muted: #8888a0;
+      --font-display: 'Sora', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      overflow: hidden;
+    }
+
+    .deck {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 80px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .slide::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(ellipse at 20% 80%, rgba(0, 245, 212, 0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(247, 37, 133, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    h1 {
+      font-size: 4rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-magenta) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h2 {
+      font-size: 2.8rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 2rem;
+      color: var(--text-primary);
+    }
+
+    h3 {
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-bottom: 3rem;
+      max-width: 700px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 0.4rem 1rem;
+      background: rgba(0, 245, 212, 0.1);
+      border: 1px solid rgba(0, 245, 212, 0.3);
+      border-radius: 100px;
+      font-size: 0.9rem;
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      margin-bottom: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+    }
+
+    .card h4 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .card p {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .card .icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Architecture Diagram */
+    .arch-container {
+      width: 100%;
+      max-width: 1100px;
+      margin: 2rem 0;
+    }
+
+    .arch-svg {
+      width: 100%;
+      height: auto;
+    }
+
+    /* Pipeline Steps */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 1000px;
+    }
+
+    .step {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1.2rem 1.8rem;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      position: relative;
+    }
+
+    .step.highlight {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 30px rgba(0, 245, 212, 0.15);
+    }
+
+    .arrow {
+      color: var(--accent-magenta);
+      font-size: 1.5rem;
+    }
+
+    /* Code Block */
+    .code-block {
+      background: #0d0d14;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      line-height: 1.8;
+      max-width: 800px;
+      text-align: left;
+      overflow-x: auto;
+    }
+
+    .code-block .comment {
+      color: var(--text-muted);
+    }
+
+    .code-block .keyword {
+      color: var(--accent-magenta);
+    }
+
+    .code-block .string {
+      color: var(--accent-cyan);
+    }
+
+    .code-block .fn {
+      color: var(--accent-orange);
+    }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 4rem;
+      margin: 2rem 0;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 3.5rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    /* List */
+    .feature-list {
+      list-style: none;
+      max-width: 700px;
+      text-align: left;
+    }
+
+    .feature-list li {
+      font-size: 1.2rem;
+      line-height: 1.8;
+      color: var(--text-muted);
+      padding: 0.5rem 0;
+      padding-left: 2rem;
+      position: relative;
+    }
+
+    .feature-list li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent-cyan);
+    }
+
+    .feature-list li strong {
+      color: var(--text-primary);
+    }
+
+    /* Navigation */
+    .nav {
+      position: fixed;
+      bottom: 30px;
+      right: 40px;
+      display: flex;
+      gap: 1rem;
+      z-index: 100;
+    }
+
+    .nav button {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav button:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(0, 245, 212, 0.2);
+    }
+
+    .progress {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+      transition: width 0.3s ease;
+    }
+
+    .slide-number {
+      position: fixed;
+      bottom: 40px;
+      left: 40px;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Centered content */
+    .centered {
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+    }
+
+    /* Weave callout */
+    .weave-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 1.2rem;
+      background: linear-gradient(135deg, rgba(255, 204, 0, 0.1), rgba(255, 107, 53, 0.1));
+      border: 1px solid rgba(255, 204, 0, 0.3);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: #ffcc00;
+      margin-top: 2rem;
+    }
+
+    .big-text {
+      font-size: 2rem;
+      max-width: 900px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .big-text strong {
+      color: var(--text-primary);
+    }
+
+    .cta {
+      margin-top: 3rem;
+      padding: 1rem 2.5rem;
+      font-size: 1.1rem;
+      font-family: var(--font-display);
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+      color: var(--bg-dark);
+      border: none;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(0, 245, 212, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+<div class="deck">
+  
+  <!-- Slide 1: Title -->
+  <section class="slide active" data-slide="1">
+    <span class="tag">W&B Self-Improving Agents Hackathon</span>
+    <h1>openclaw-trace</h1>
+    <h3>A recursive self-improvement loop for AI agents.<br>Evidence-grounded. Measurable. Compounding.</h3>
+    <div class="weave-badge">
+      <span>🐝</span>
+      <span>Traced with W&B Weave</span>
+    </div>
+  </section>
+
+  <!-- Slide 2: The Problem -->
+  <section class="slide" data-slide="2">
+    <h2>The Problem</h2>
+    <p class="big-text">
+      AI agents make mistakes. They frustrate users. They miss opportunities.<br><br>
+      But most agents <strong>can't learn from their own work</strong>.<br><br>
+      What if they could?
+    </p>
+  </section>
+
+  <!-- Slide 3: The Insight -->
+  <section class="slide" data-slide="3">
+    <h2>The Key Insight</h2>
+    <p class="big-text">
+      Every agent session is a <strong>training signal</strong>.<br><br>
+      Errors, user friction, missed opportunities, moments of delight—<br>
+      they're all <strong>grounded evidence</strong> we can mine, cluster, and act on.
+    </p>
+  </section>
+
+  <!-- Slide 4: Pipeline Overview -->
+  <section class="slide" data-slide="4">
+    <h2>The Loop</h2>
+    <div class="pipeline">
+      <div class="step">Session Traces</div>
+      <span class="arrow">→</span>
+      <div class="step highlight">Mine Signals</div>
+      <span class="arrow">→</span>
+      <div class="step">Rollup/Cluster</div>
+      <span class="arrow">→</span>
+      <div class="step">Tickets</div>
+      <span class="arrow">→</span>
+      <div class="step highlight">Research Briefs</div>
+      <span class="arrow">→</span>
+      <div class="step">Experiments</div>
+      <span class="arrow">→</span>
+      <div class="step">Fixes</div>
+    </div>
+    <h3 style="margin-top: 3rem;">Then measure the delta. Repeat.</h3>
+  </section>
+
+  <!-- Slide 5: Architecture Diagram -->
+  <section class="slide" data-slide="5">
+    <h2>Architecture</h2>
+    <div class="arch-container">
+      <svg class="arch-svg" viewBox="0 0 1000 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Background grid -->
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          </pattern>
+          <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00f5d4;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#00d4aa;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="magentaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#f72585;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#b5179e;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ff6b35;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#f7931e;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="1000" height="500" fill="url(#grid)"/>
+        
+        <!-- Session Traces (left) -->
+        <rect x="30" y="180" width="140" height="140" rx="12" fill="#12121a" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="100" y="240" fill="#8888a0" font-family="JetBrains Mono" font-size="11" text-anchor="middle">Session</text>
+        <text x="100" y="258" fill="#f0f0f5" font-family="JetBrains Mono" font-size="13" text-anchor="middle">JSONL</text>
+        <text x="100" y="290" fill="#00f5d4" font-family="JetBrains Mono" font-size="10" text-anchor="middle">📄 traces</text>
+        
+        <!-- Arrow 1 -->
+        <path d="M 175 250 L 215 250" stroke="#f72585" stroke-width="2" marker-end="url(#arrowhead)"/>
+        
+        <!-- Mine Signals -->
+        <rect x="220" y="160" width="150" height="180" rx="12" fill="#12121a" stroke="url(#cyanGrad)" stroke-width="2"/>
+        <text x="295" y="200" fill="#00f5d4" font-family="Sora" font-size="14" font-weight="600" text-anchor="middle">mine-signals</text>
+        <text x="295" y="230" fill="#8888a0" font-family="JetBrains Mono" font-size="10" text-anchor="middle">LLM + heuristics</text>
+        <text x="295" y="260" fill="#8888a0" font-family="JetBrains Mono" font-size="9" text-anchor="middle">→ error</text>
+        <text x="295" y="275" fill="#8888a0" font-family="JetBrains Mono" font-size="9" text-anchor="middle">→ user_frustration</text>
+        <text x="295" y="290" fill="#8888a0" font-family="JetBrains Mono" font-size="9" text-anchor="middle">→ proactive_opp</text>
+        <text x="295" y="305" fill="#8888a0" font-family="JetBrains Mono" font-size="9" text-anchor="middle">→ user_delight</text>
+        
+        <!-- Arrow 2 -->
+        <path d="M 375 250 L 415 250" stroke="#f72585" stroke-width="2"/>
+        
+        <!-- Rollup -->
+        <rect x="420" y="180" width="130" height="140" rx="12" fill="#12121a" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="485" y="230" fill="#f0f0f5" font-family="Sora" font-size="13" font-weight="600" text-anchor="middle">rollup</text>
+        <text x="485" y="255" fill="#8888a0" font-family="JetBrains Mono" font-size="10" text-anchor="middle">cluster + rank</text>
+        <text x="485" y="280" fill="#ff6b35" font-family="JetBrains Mono" font-size="10" text-anchor="middle">fingerprints</text>
+        
+        <!-- Arrow 3 -->
+        <path d="M 555 250 L 595 250" stroke="#f72585" stroke-width="2"/>
+        
+        <!-- Research Briefs -->
+        <rect x="600" y="160" width="150" height="180" rx="12" fill="#12121a" stroke="url(#magentaGrad)" stroke-width="2"/>
+        <text x="675" y="200" fill="#f72585" font-family="Sora" font-size="14" font-weight="600" text-anchor="middle">research briefs</text>
+        <text x="675" y="230" fill="#8888a0" font-family="JetBrains Mono" font-size="10" text-anchor="middle">actor-critic</text>
+        <text x="675" y="260" fill="#8888a0" font-family="JetBrains Mono" font-size="9" text-anchor="middle">Claude drafts</text>
+        <text x="675" y="280" fill="#8888a0" font-family="JetBrains Mono" font-size="9" text-anchor="middle">Codex critiques</text>
+        <text x="675" y="310" fill="#00f5d4" font-family="JetBrains Mono" font-size="9" text-anchor="middle">evidence-first</text>
+        
+        <!-- Arrow 4 -->
+        <path d="M 755 250 L 795 250" stroke="#f72585" stroke-width="2"/>
+        
+        <!-- Experiments/Fixes -->
+        <rect x="800" y="180" width="140" height="140" rx="12" fill="#12121a" stroke="url(#orangeGrad)" stroke-width="2"/>
+        <text x="870" y="225" fill="#ff6b35" font-family="Sora" font-size="14" font-weight="600" text-anchor="middle">experiments</text>
+        <text x="870" y="248" fill="#8888a0" font-family="JetBrains Mono" font-size="10" text-anchor="middle">+ verified fixes</text>
+        <text x="870" y="275" fill="#ffcc00" font-family="JetBrains Mono" font-size="9" text-anchor="middle">🐝 Weave</text>
+        <text x="870" y="292" fill="#dc382d" font-family="JetBrains Mono" font-size="9" text-anchor="middle">⬡ Redis</text>
+        <text x="870" y="312" fill="#8888a0" font-family="JetBrains Mono" font-size="10" text-anchor="middle">measure Δ</text>
+        
+        <!-- Feedback loop arrow (bottom) -->
+        <path d="M 870 325 L 870 420 L 100 420 L 100 325" stroke="url(#cyanGrad)" stroke-width="2" fill="none" stroke-dasharray="8,4"/>
+        <text x="485" y="445" fill="#00f5d4" font-family="JetBrains Mono" font-size="11" text-anchor="middle">recursive improvement loop</text>
+        
+        <!-- W&B Weave badge -->
+        <rect x="770" y="60" width="100" height="40" rx="8" fill="rgba(255,204,0,0.1)" stroke="rgba(255,204,0,0.4)" stroke-width="1"/>
+        <text x="820" y="85" fill="#ffcc00" font-family="JetBrains Mono" font-size="10" text-anchor="middle">🐝 Weave</text>
+        
+        <!-- Redis badge -->
+        <rect x="880" y="60" width="90" height="40" rx="8" fill="rgba(220,56,45,0.1)" stroke="rgba(220,56,45,0.4)" stroke-width="1"/>
+        <text x="925" y="85" fill="#dc382d" font-family="JetBrains Mono" font-size="10" text-anchor="middle">⬡ Redis</text>
+        
+        <!-- Dotted lines to experiments -->
+        <path d="M 820 100 L 820 130 L 870 130 L 870 175" stroke="rgba(255,204,0,0.4)" stroke-width="1.5" stroke-dasharray="4,4" fill="none"/>
+        <path d="M 925 100 L 925 130 L 870 130" stroke="rgba(220,56,45,0.4)" stroke-width="1.5" stroke-dasharray="4,4" fill="none"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Slide 6: Signal Types -->
+  <section class="slide" data-slide="6">
+    <h2>What We Mine</h2>
+    <div class="grid-3">
+      <div class="card">
+        <div class="icon">🔴</div>
+        <h4>Errors</h4>
+        <p>Tool failures, exceptions, non-zero exits. Exact quotes from traces.</p>
+      </div>
+      <div class="card">
+        <div class="icon">😤</div>
+        <h4>User Friction</h4>
+        <p>Frustration signals, confusion, repeated clarifications.</p>
+      </div>
+      <div class="card">
+        <div class="icon">💡</div>
+        <h4>Improvement Suggestions</h4>
+        <p>Ideas surfaced during sessions—explicit or implicit.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🚀</div>
+        <h4>Proactive Opportunities</h4>
+        <p>Things the agent could have done but didn't think to.</p>
+      </div>
+      <div class="card">
+        <div class="icon">✨</div>
+        <h4>User Delight</h4>
+        <p>Moments to create magic. Surprise and polish.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🧪</div>
+        <h4>Experiment Ideas</h4>
+        <p>Hypotheses worth testing. Ablations. Benchmarks.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 7: Evidence-First -->
+  <section class="slide" data-slide="7">
+    <h2>Evidence-First</h2>
+    <p class="big-text" style="margin-bottom: 2rem;">
+      Every claim links back to <strong>exact quotes</strong> from real sessions.<br>
+      No hallucinated improvements.
+    </p>
+    <div class="code-block">
+      <span class="comment"># Every signal includes grounded evidence</span><br>
+      {<br>
+      &nbsp;&nbsp;<span class="string">"kind"</span>: <span class="string">"error"</span>,<br>
+      &nbsp;&nbsp;<span class="string">"summary"</span>: <span class="string">"Phorge deadline format rejected"</span>,<br>
+      &nbsp;&nbsp;<span class="string">"evidence"</span>: [{<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"event_i"</span>: 42,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"quote"</span>: <span class="string">"Invalid value for deadline: expected epoch integer"</span><br>
+      &nbsp;&nbsp;}]<br>
+      }
+    </div>
+  </section>
+
+  <!-- Slide 8: Actor-Critic Briefs -->
+  <section class="slide" data-slide="8">
+    <h2>Actor-Critic Research Briefs</h2>
+    <ul class="feature-list">
+      <li><strong>Evidence snapshot first</strong> — draft the facts before claims</li>
+      <li><strong>Claude drafts</strong> each section with strict grounding</li>
+      <li><strong>Codex critiques</strong> — flags unsupported claims</li>
+      <li><strong>Claude revises</strong> — marks gaps as "Unknown"</li>
+      <li><strong>Grounding check</strong> — final pass for hallucination</li>
+    </ul>
+    <h3 style="margin-top: 2rem;">The result: briefs you can actually trust.</h3>
+  </section>
+
+  <!-- Slide 9: Weave + Redis Integration -->
+  <section class="slide" data-slide="9">
+    <h2>Experiments: Weave + Redis</h2>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">🐝</div>
+        <div class="stat-label">Weave traces</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" style="color: #dc382d;">⬡</div>
+        <div class="stat-label">Redis state</div>
+      </div>
+    </div>
+    <ul class="feature-list">
+      <li><strong>Weave</strong> — traces experiment runs, LLM calls, before/after metrics</li>
+      <li><strong>Redis</strong> — caches experiment state, rollup data, fast retrieval</li>
+      <li><strong>Fix verification</strong> — did it actually work?</li>
+      <li><strong>Delta tracking</strong> — measurable improvement per fix</li>
+    </ul>
+    <div class="weave-badge" style="margin-top: 2rem;">
+      <span>🐝</span>
+      <span>Full observability into experiment outcomes</span>
+    </div>
+  </section>
+
+  <!-- Slide 10: Results / Demo -->
+  <section class="slide" data-slide="10">
+    <h2>What We've Built</h2>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">100+</div>
+        <div class="stat-label">sessions mined</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">7</div>
+        <div class="stat-label">signal types</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">∞</div>
+        <div class="stat-label">loop iterations</div>
+      </div>
+    </div>
+    <ul class="feature-list" style="margin-top: 2rem;">
+      <li>Working CLI: <span class="mono">openclaw-trace mine-signals</span></li>
+      <li>Clustering with fingerprints for idempotent ticket updates</li>
+      <li>Actor-critic research brief pipeline</li>
+      <li>Full Weave integration for tracing</li>
+    </ul>
+  </section>
+
+  <!-- Slide 11: Vision -->
+  <section class="slide" data-slide="11">
+    <h2>The Vision</h2>
+    <p class="big-text">
+      Many agents. <strong>Shared, sanitized rollups.</strong><br>
+      Evidence-backed improvements that propagate.<br><br>
+      A distributed R&D engine—<br>
+      where the best fixes spread <strong>because they work</strong>.
+    </p>
+  </section>
+
+  <!-- Slide 12: CTA -->
+  <section class="slide" data-slide="12">
+    <h1>openclaw-trace</h1>
+    <h3>Recursive self-improvement, grounded in evidence.</h3>
+    <div class="weave-badge">
+      <span>🐝</span>
+      <span>Traced with W&B Weave</span>
+    </div>
+    <p class="subtitle" style="margin-top: 3rem; color: var(--text-muted);">
+      github.com/phantastic-ai/openclaw-trace
+    </p>
+  </section>
+
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="slide-number"><span id="current">1</span> / <span id="total">12</span></div>
+
+<nav class="nav">
+  <button id="prev">←</button>
+  <button id="next">→</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  document.getElementById('total').textContent = total;
+
+  function showSlide(n) {
+    slides.forEach((s, i) => s.classList.toggle('active', i === n));
+    document.getElementById('current').textContent = n + 1;
+    document.getElementById('progress').style.width = ((n + 1) / total * 100) + '%';
+  }
+
+  function next() {
+    if (current < total - 1) { current++; showSlide(current); }
+  }
+
+  function prev() {
+    if (current > 0) { current--; showSlide(current); }
+  }
+
+  document.getElementById('next').addEventListener('click', next);
+  document.getElementById('prev').addEventListener('click', prev);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') next();
+    if (e.key === 'ArrowLeft') prev();
+  });
+
+  showSlide(0);
+</script>
+
+</body>
+</html>
