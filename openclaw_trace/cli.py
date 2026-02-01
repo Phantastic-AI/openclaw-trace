@@ -224,18 +224,65 @@ def _cmd_mine_signals(argv: list[str]) -> None:
     Path(args.out_json).write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
+def _cmd_rollup_signals(argv: list[str]) -> None:
+    from .rollup_signals import RollupConfig, load_items, rollup_signals
+
+    ap = argparse.ArgumentParser(
+        prog="openclaw-trace rollup-signals",
+        description="Roll up mined signals into ranked clusters.",
+    )
+    ap.add_argument("--in-jsonl", required=True, help="Input signals JSONL path")
+    ap.add_argument("--out-json", default="rollup.json", help="Output rollup JSON path")
+    ap.add_argument("--out-md", default="rollup.md", help="Output rollup Markdown path")
+    ap.add_argument("--max-samples", type=int, default=3)
+    ap.add_argument("--max-tags", type=int, default=8)
+
+    args = ap.parse_args(argv)
+
+    items = load_items(Path(args.in_jsonl))
+    summary, rollups = rollup_signals(items=items, cfg=RollupConfig(max_samples=args.max_samples, max_tags=args.max_tags))
+
+    out = {
+        "summary": summary,
+        "rollups": rollups,
+    }
+    Path(args.out_json).write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    lines: list[str] = []
+    lines.append("# Rollup summary")
+    lines.append("")
+    lines.append(f"- items: {summary['counts']['items']}")
+    lines.append(f"- groups: {summary['counts']['groups']}")
+    lines.append(f"- tiers: {summary['tiers']}")
+    lines.append("")
+
+    for r in rollups[:50]:
+        lines.append(f"## Tier {r['tier']} score={r['score']:.2f}")
+        lines.append("")
+        lines.append(f"- summary: {r['canonical_summary']}")
+        lines.append(f"- kinds: {r['kind_counts']}")
+        lines.append(f"- max_severity: {r['max_severity']}")
+        lines.append(f"- tags_top: {r['tags_top']}")
+        lines.append(f"- samples: {len(r['sample_refs'])}")
+        lines.append("")
+
+    Path(args.out_md).write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
+
+
 def main() -> None:
     # Single, explicit CLI surface (no legacy aliases or implicit dispatch).
     # Use:
     # - `openclaw-trace analyze ...`
     # - `openclaw-trace mine-ideas ...`
     # - `openclaw-trace mine-signals ...`
+    # - `openclaw-trace rollup-signals ...`
     ap = argparse.ArgumentParser(prog="openclaw-trace")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("analyze", help="Analyze a single transcript")
     sub.add_parser("mine-ideas", help="Mine frontier experiment ideas from many traces")
     sub.add_parser("mine-signals", help="Mine self-improvement signals from many traces")
+    sub.add_parser("rollup-signals", help="Roll up mined signals into ranked clusters")
 
     ns, _rest = ap.parse_known_args(sys.argv[1:2])
 
@@ -245,6 +292,8 @@ def main() -> None:
         _cmd_mine_ideas(sys.argv[2:])
     elif ns.cmd == "mine-signals":
         _cmd_mine_signals(sys.argv[2:])
+    elif ns.cmd == "rollup-signals":
+        _cmd_rollup_signals(sys.argv[2:])
     else:
         ap.print_help()
         raise SystemExit(2)

@@ -82,6 +82,17 @@ openclaw-trace mine-signals \
   --out-json out_signals.json
 ```
 
+## Roll up mined signals (clusters + ranking)
+
+This stage groups similar signals and outputs a ranked rollup. Rollups avoid verbatim evidence quotes to reduce PII amplification.
+
+```bash
+openclaw-trace rollup-signals \
+  --in-jsonl out_signals.jsonl \
+  --out-json rollup.json \
+  --out-md rollup.md
+```
+
 ## Research briefs (template + headless runner)
 
 Template:
