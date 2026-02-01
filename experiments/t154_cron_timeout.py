@@ -4,6 +4,8 @@ T154 Cron Gateway Timeout Experiment
 
 Hypothesis: cron.list timeouts are caused by lock contention when jobs are executing.
 This script measures latency and reproduces the issue.
+
+Traces: https://wandb.ai/ninjaa-self/openclaw-trace-experiments/weave
 """
 
 import json
@@ -11,26 +13,32 @@ import os
 import subprocess
 import sys
 import time
-from dataclasses import dataclass, asdict
-from datetime import datetime
+from dataclasses import dataclass, asdict, field
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
 # Weave integration
-try:
-    import weave
-    WEAVE_AVAILABLE = True
-except ImportError:
-    WEAVE_AVAILABLE = False
-    print("[WARN] weave not installed, tracing disabled", file=sys.stderr)
+WEAVE_AVAILABLE = False
+weave = None
 
-# Redis integration  
-try:
-    import redis
-    REDIS_AVAILABLE = True
-except ImportError:
-    REDIS_AVAILABLE = False
-    print("[WARN] redis not installed, will skip Redis logging", file=sys.stderr)
+def setup_weave():
+    global WEAVE_AVAILABLE, weave
+    api_key = os.environ.get('WANDB_API_KEY')
+    if not api_key:
+        print("[WARN] WANDB_API_KEY not set, Weave tracing disabled", file=sys.stderr)
+        return False
+    
+    try:
+        import weave as _weave
+        weave = _weave
+        weave.init('ninjaa-self/openclaw-trace-experiments')
+        WEAVE_AVAILABLE = True
+        print("[OK] Weave initialized: https://wandb.ai/ninjaa-self/openclaw-trace-experiments/weave")
+        return True
+    except Exception as e:
+        print(f"[WARN] Weave init failed: {e}", file=sys.stderr)
+        return False
 
 
 @dataclass
@@ -44,45 +52,18 @@ class LatencyResult:
     jobs_count: Optional[int] = None
 
 
-def init_weave():
-    if WEAVE_AVAILABLE:
-        api_key = os.environ.get('WANDB_API_KEY')
-        if not api_key:
-            print("[WARN] WANDB_API_KEY not set, Weave tracing disabled", file=sys.stderr)
-            return False
-        try:
-            weave.init('ninjaa-self/openclaw-trace-experiments')
-            print("[OK] Weave initialized")
-            return True
-        except Exception as e:
-            print(f"[WARN] Weave init failed: {e}", file=sys.stderr)
-            return False
-    return False
-
-
-def get_redis():
-    if not REDIS_AVAILABLE:
-        return None
-    try:
-        # Try local Redis first, then cloud
-        r = redis.Redis(host='localhost', port=6379, decode_responses=True)
-        r.ping()
-        return r
-    except:
-        return None
-
-
 CLAWDBOT_CMD = ["node", "/home/debian/clawdbot/dist/entry.js"]
 
-def call_cron_list() -> tuple[bool, Optional[int], Optional[str], float]:
-    """Call cron.list via gateway and measure latency."""
+
+def call_cron_list_raw() -> tuple[bool, Optional[int], Optional[str], float]:
+    """Call cron.list via gateway and measure latency (raw, no tracing)."""
     start = time.time()
     try:
         result = subprocess.run(
             CLAWDBOT_CMD + ["cron", "list", "--json"],
             capture_output=True,
             text=True,
-            timeout=35  # Just over the 30s gateway timeout
+            timeout=35
         )
         latency = (time.time() - start) * 1000
         
@@ -104,40 +85,46 @@ def call_cron_list() -> tuple[bool, Optional[int], Optional[str], float]:
         return False, None, str(e)[:200], latency
 
 
-def run_baseline(n_calls: int = 20) -> list[LatencyResult]:
-    """Run baseline latency measurements."""
-    print(f"\n=== BASELINE: {n_calls} calls to cron.list ===\n")
+def call_cron_list() -> dict:
+    """Traced wrapper for cron.list call."""
+    success, jobs_count, error, latency_ms = call_cron_list_raw()
+    return {
+        "success": success,
+        "jobs_count": jobs_count,
+        "error": error,
+        "latency_ms": latency_ms
+    }
+
+
+def run_baseline_inner(n_calls: int) -> list[dict]:
+    """Run baseline latency measurements (inner logic)."""
     results = []
     
     for i in range(n_calls):
         start_ts = time.time()
-        success, jobs_count, error, latency_ms = call_cron_list()
+        call_result = call_cron_list()
         end_ts = time.time()
         
-        result = LatencyResult(
-            call_id=i,
-            start_ts=start_ts,
-            end_ts=end_ts,
-            latency_ms=latency_ms,
-            success=success,
-            error=error,
-            jobs_count=jobs_count
-        )
+        result = {
+            "call_id": i,
+            "start_ts": start_ts,
+            "end_ts": end_ts,
+            **call_result
+        }
         results.append(result)
         
-        status = "✓" if success else "✗"
-        print(f"  [{i+1}/{n_calls}] {status} {latency_ms:.1f}ms (jobs={jobs_count})")
+        status = "✓" if call_result["success"] else "✗"
+        print(f"  [{i+1}/{n_calls}] {status} {call_result['latency_ms']:.1f}ms (jobs={call_result['jobs_count']})")
         
-        # Small delay between calls
         time.sleep(0.5)
     
     return results
 
 
-def analyze_results(results: list[LatencyResult], label: str) -> dict:
+def analyze_results(results: list[dict], label: str) -> dict:
     """Compute statistics from results."""
-    latencies = [r.latency_ms for r in results if r.success]
-    failures = [r for r in results if not r.success]
+    latencies = [r["latency_ms"] for r in results if r["success"]]
+    failures = [r for r in results if not r["success"]]
     
     if not latencies:
         return {
@@ -149,7 +136,7 @@ def analyze_results(results: list[LatencyResult], label: str) -> dict:
             "p95_ms": None,
             "p99_ms": None,
             "max_ms": None,
-            "timeouts": len([f for f in failures if f.error and "TIMEOUT" in f.error])
+            "timeouts": len([f for f in failures if f.get("error") and "TIMEOUT" in f["error"]])
         }
     
     latencies.sort()
@@ -166,7 +153,7 @@ def analyze_results(results: list[LatencyResult], label: str) -> dict:
         "max_ms": max(latencies) if latencies else None,
         "min_ms": min(latencies) if latencies else None,
         "mean_ms": sum(latencies) / n if n > 0 else None,
-        "timeouts": len([f for f in failures if f.error and "TIMEOUT" in f.error])
+        "timeouts": len([f for f in failures if f.get("error") and "TIMEOUT" in f["error"]])
     }
 
 
@@ -183,44 +170,24 @@ def print_stats(stats: dict):
         print(f"  Max: {stats['max_ms']:.1f}ms")
 
 
-def log_to_redis(r, results: list[LatencyResult], label: str):
-    """Log results to Redis for persistence."""
-    if not r:
-        return
+def run_experiment(phase: str, n_calls: int) -> dict:
+    """
+    Run the T154 cron timeout experiment.
     
-    key = f"t154:experiment:{label}:{int(time.time())}"
-    data = {
-        "label": label,
-        "timestamp": datetime.utcnow().isoformat(),
-        "results": [asdict(r) for r in results]
-    }
-    r.set(key, json.dumps(data), ex=86400 * 7)  # 7 day TTL
+    This function is traced by Weave when available.
+    """
+    print(f"\n=== {phase.upper()}: {n_calls} calls to cron.list ===\n")
     
-    # Also push individual latencies for easy analysis
-    for result in results:
-        if result.success:
-            r.lpush(f"t154:latencies:{label}", result.latency_ms)
-    r.ltrim(f"t154:latencies:{label}", 0, 999)  # Keep last 1000
-    
-    print(f"[Redis] Logged to {key}")
-
-
-def weave_traced_experiment(func):
-    """Decorator to trace with Weave if available."""
-    if WEAVE_AVAILABLE:
-        return weave.op(func)
-    return func
-
-
-@weave_traced_experiment
-def run_experiment_phase(phase: str, n_calls: int) -> dict:
-    """Run a single experiment phase with tracing."""
-    results = run_baseline(n_calls)
+    results = run_baseline_inner(n_calls)
     stats = analyze_results(results, phase)
+    print_stats(stats)
+    
     return {
+        "experiment": "t154_cron_timeout",
         "phase": phase,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "stats": stats,
-        "results": [asdict(r) for r in results]
+        "results": results
     }
 
 
@@ -228,7 +195,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="T154 Cron Timeout Experiment")
     parser.add_argument("--phase", choices=["baseline", "stress", "full"], default="baseline")
-    parser.add_argument("--n-calls", type=int, default=20)
+    parser.add_argument("--n-calls", type=int, default=10)
     parser.add_argument("--output", type=str, default=None)
     args = parser.parse_args()
     
@@ -237,54 +204,27 @@ def main():
     print("=" * 60)
     print(f"Phase: {args.phase}")
     print(f"Calls: {args.n_calls}")
-    print(f"Weave: {'enabled' if WEAVE_AVAILABLE else 'disabled'}")
-    print(f"Redis: {'enabled' if REDIS_AVAILABLE else 'disabled'}")
+    
+    # Initialize Weave
+    weave_ok = setup_weave()
+    print(f"Weave: {'enabled' if weave_ok else 'disabled'}")
     print("=" * 60)
     
-    init_weave()
-    r = get_redis()
-    
-    if args.phase == "baseline":
-        results = run_baseline(args.n_calls)
-        stats = analyze_results(results, "baseline")
-        print_stats(stats)
-        log_to_redis(r, results, "baseline")
-        
-        output = {
-            "experiment": "t154_cron_timeout",
-            "phase": "baseline",
-            "timestamp": datetime.utcnow().isoformat(),
-            "stats": stats,
-            "results": [asdict(r) for r in results]
-        }
-        
-    elif args.phase == "full":
-        # Full experiment: baseline, then stress test
-        print("\n>>> Phase 1: Baseline")
-        baseline_results = run_baseline(args.n_calls)
-        baseline_stats = analyze_results(baseline_results, "baseline")
-        print_stats(baseline_stats)
-        log_to_redis(r, baseline_results, "baseline")
-        
-        output = {
-            "experiment": "t154_cron_timeout",
-            "phase": "full",
-            "timestamp": datetime.utcnow().isoformat(),
-            "baseline": {
-                "stats": baseline_stats,
-                "results": [asdict(r) for r in baseline_results]
-            }
-        }
-    
+    # If Weave is available, wrap the experiment function
+    if WEAVE_AVAILABLE and weave:
+        # Create traced version of our experiment
+        traced_experiment = weave.op(run_experiment)
+        output = traced_experiment(args.phase, args.n_calls)
     else:
-        output = {"error": f"Unknown phase: {args.phase}"}
+        output = run_experiment(args.phase, args.n_calls)
     
     # Save output
     if args.output:
         Path(args.output).write_text(json.dumps(output, indent=2))
         print(f"\n[OK] Results saved to {args.output}")
-    else:
-        print(f"\n[Results JSON]\n{json.dumps(output, indent=2)}")
+    
+    if WEAVE_AVAILABLE:
+        print(f"\n[OK] Traces: https://wandb.ai/ninjaa-self/openclaw-trace-experiments/weave")
     
     return output
 

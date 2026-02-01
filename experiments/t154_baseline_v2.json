@@ -1,0 +1,65 @@
+{
+  "experiment": "t154_cron_timeout",
+  "phase": "baseline",
+  "timestamp": "2026-02-01T21:32:40.735747+00:00",
+  "stats": {
+    "label": "baseline",
+    "n_calls": 5,
+    "n_success": 5,
+    "n_failures": 0,
+    "p50_ms": 3484.5595359802246,
+    "p95_ms": 3530.501365661621,
+    "p99_ms": 3530.501365661621,
+    "max_ms": 3530.501365661621,
+    "min_ms": 3294.107437133789,
+    "mean_ms": 3435.164451599121,
+    "timeouts": 0
+  },
+  "results": [
+    {
+      "call_id": 0,
+      "start_ts": 1769981541.0573535,
+      "end_ts": 1769981544.416381,
+      "success": true,
+      "jobs_count": 15,
+      "error": null,
+      "latency_ms": 3358.8576316833496
+    },
+    {
+      "call_id": 1,
+      "start_ts": 1769981544.9166386,
+      "end_ts": 1769981548.4015276,
+      "success": true,
+      "jobs_count": 15,
+      "error": null,
+      "latency_ms": 3484.5595359802246
+    },
+    {
+      "call_id": 2,
+      "start_ts": 1769981548.9017498,
+      "end_ts": 1769981552.4097576,
+      "success": true,
+      "jobs_count": 15,
+      "error": null,
+      "latency_ms": 3507.796287536621
+    },
+    {
+      "call_id": 3,
+      "start_ts": 1769981552.909957,
+      "end_ts": 1769981556.4406362,
+      "success": true,
+      "jobs_count": 15,
+      "error": null,
+      "latency_ms": 3530.501365661621
+    },
+    {
+      "call_id": 4,
+      "start_ts": 1769981556.9408667,
+      "end_ts": 1769981560.2351909,
+      "success": true,
+      "jobs_count": 15,
+      "error": null,
+      "latency_ms": 3294.107437133789
+    }
+  ]
+}
