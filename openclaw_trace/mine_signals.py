@@ -6,7 +6,7 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional
 
 from .llm_client import LLMClient, NoLLMClient, OpenAICompatClient
 from .transcript import Transcript, load_transcript
@@ -768,15 +768,26 @@ def _heuristic_extract(chunk: dict[str, Any], cfg: MineSignalsConfig) -> list[Js
     return items[: cfg.max_items_per_chunk]
 
 
-def mine_signals(*, llm: LLMClient | None, cfg: MineSignalsConfig) -> tuple[Json, list[Json]]:
+def mine_signals(
+    *,
+    llm: LLMClient | None,
+    cfg: MineSignalsConfig,
+    emit: Callable[[Json], None] | None = None,
+    progress_every: int = 0,
+    progress_cb: Callable[[Json], None] | None = None,
+    collect: bool = True,
+) -> tuple[Json, list[Json]]:
     files = _iter_session_files(cfg)
     items_out: list[Json] = []
     sessions_with_items = 0
+    items_emitted = 0
+    sessions_scanned = 0
 
     if llm is None:
         llm = NoLLMClient()
 
     for p in files:
+        sessions_scanned += 1
         transcript = load_transcript(p)
         views = _build_event_views(transcript, cfg)
         chunks = _chunk_event_views(views, cfg)
@@ -791,7 +802,7 @@ def mine_signals(*, llm: LLMClient | None, cfg: MineSignalsConfig) -> tuple[Json
         session_id = f"sha256:{_hash_str(rel)}"
         file_hint = f"sha256:{_hash_str(rel)}"
 
-        session_items: list[Json] = []
+        session_has_items = False
 
         for chunk in chunks:
             event_map = {v.i: v for v in chunk.get("views", [])}
@@ -823,11 +834,26 @@ def mine_signals(*, llm: LLMClient | None, cfg: MineSignalsConfig) -> tuple[Json
             if validated:
                 validated = sorted(validated, key=lambda x: x.get("confidence", 0.0), reverse=True)
                 validated = validated[: cfg.max_items_per_chunk]
-                session_items.extend(validated)
+                for vi in validated:
+                    session_has_items = True
+                    items_emitted += 1
+                    if emit:
+                        emit(vi)
+                    if collect:
+                        items_out.append(vi)
 
-        if session_items:
+        if session_has_items:
             sessions_with_items += 1
-            items_out.extend(session_items)
+
+        if progress_every and progress_cb and sessions_scanned % progress_every == 0:
+            progress_cb(
+                {
+                    "sessions_scanned": sessions_scanned,
+                    "sessions_total": len(files),
+                    "sessions_with_items": sessions_with_items,
+                    "items_emitted": items_emitted,
+                }
+            )
 
     summary = {
         "mode": "mine-signals",
@@ -847,9 +873,9 @@ def mine_signals(*, llm: LLMClient | None, cfg: MineSignalsConfig) -> tuple[Json
             "model": llm.model if isinstance(llm, OpenAICompatClient) else None,
         },
         "counts": {
-            "sessions_scanned": len(files),
+            "sessions_scanned": sessions_scanned,
             "sessions_with_items": sessions_with_items,
-            "items": len(items_out),
+            "items": items_emitted if not collect else len(items_out),
         },
     }
 

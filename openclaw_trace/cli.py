@@ -93,6 +93,8 @@ def _cmd_mine_signals(argv: list[str]) -> None:
     ap.add_argument("--max-quote-chars", type=int, default=200)
     ap.add_argument("--llm", choices=["openai", "none"], default="openai")
     ap.add_argument("--temperature", type=float, default=0.0)
+    ap.add_argument("--progress-every", type=int, default=10, help="Emit progress every N sessions (0 disables)")
+    ap.add_argument("--flush-every", type=int, default=1, help="Flush JSONL every N items")
     ap.add_argument(
         "--out-jsonl",
         type=str,
@@ -126,17 +128,39 @@ def _cmd_mine_signals(argv: list[str]) -> None:
         temperature=args.temperature,
     )
 
-    summary, items = mine_signals(llm=llm, cfg=cfg)
+    out_jsonl = Path(args.out_jsonl)
+    out_jsonl.parent.mkdir(parents=True, exist_ok=True)
+    items_written = 0
+
+    def emit(item: dict) -> None:
+        nonlocal items_written
+        fh.write(json.dumps(item, ensure_ascii=False) + "\n")
+        items_written += 1
+        if args.flush_every > 0 and items_written % args.flush_every == 0:
+            fh.flush()
+
+    def progress_cb(stats: dict) -> None:
+        total = stats.get("sessions_total", "?")
+        print(
+            f"[openclaw-trace] mine-signals: sessions={stats.get('sessions_scanned')}/{total} "
+            f"items={stats.get('items_emitted')} with_items={stats.get('sessions_with_items')}",
+            file=sys.stderr,
+        )
+
+    with out_jsonl.open("w", encoding="utf-8") as fh:
+        summary, _items = mine_signals(
+            llm=llm,
+            cfg=cfg,
+            emit=emit,
+            progress_every=args.progress_every,
+            progress_cb=progress_cb,
+            collect=False,
+        )
 
     # Always print a tiny sanity line so it's obvious what we scanned.
     print(
         f"[openclaw-trace] mine-signals: sessionsDir={cfg.sessions_dir} items={summary['counts']['items']}",
         file=sys.stderr,
-    )
-
-    Path(args.out_jsonl).write_text(
-        "\n".join(json.dumps(item, ensure_ascii=False) for item in items) + ("\n" if items else ""),
-        encoding="utf-8",
     )
     Path(args.out_json).write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
 
