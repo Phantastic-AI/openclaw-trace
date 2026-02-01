@@ -18,6 +18,11 @@ JSON
 sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.createtask --as admin --input /tmp/subtask.json
 ```
 
+**Exec plans:** For substantial work, create an exec plan using the template:
+- Template: https://github.com/ninjaa/openai-codex-exec-plan/blob/main/.agents/template/PLAN.md
+- Save as `.agents/plans/<task-id>/PLAN.md` in this repo
+- Update progress in the plan as you work
+
 **Project:** `#hal-self-improvement` — https://hub.phantastic.ai/tag/hal-self-improvement/
 
 ---
