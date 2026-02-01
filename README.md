@@ -146,6 +146,8 @@ python scripts/run_research_brief.py \
 
 Actor‑critic defaults to **evidence‑first** (draft Evidence snapshot first, then use it as context).
 
+By default the brief runner also attaches **related local briefs** (top 3 keyword matches from `docs/research-briefs`). Disable with `--no-related-briefs`.
+
 ## Privacy / PII
 
 - `mine-signals` is instructed not to emit PII, but v1 redaction is minimal.

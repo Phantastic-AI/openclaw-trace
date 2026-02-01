@@ -11,7 +11,42 @@ from pathlib import Path
 from typing import Optional
 
 DEFAULT_TEMPLATE = Path(__file__).resolve().parents[1] / "docs" / "research-briefs" / "BRIEF_TEMPLATE.md"
+DEFAULT_BRIEFS_DIR = Path(__file__).resolve().parents[1] / "docs" / "research-briefs"
 PHORGE_URL = "https://hub.phantastic.ai"
+
+STOPWORDS = {
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "to",
+    "of",
+    "in",
+    "on",
+    "for",
+    "with",
+    "by",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "this",
+    "that",
+    "it",
+    "as",
+    "at",
+    "from",
+    "into",
+    "we",
+    "you",
+    "they",
+    "i",
+    "our",
+    "your",
+    "their",
+}
 
 
 def _slugify(text: str) -> str:
@@ -67,6 +102,45 @@ def _read_context(paths: list[Path], max_chars: int) -> str:
         parts.append(f"## CONTEXT: {path}\n{text}")
         used += len(text)
     return "\n\n".join(parts)
+
+
+def _extract_keywords(text: str, limit: int = 12) -> list[str]:
+    words = re.findall(r"[a-zA-Z0-9_]{4,}", text.lower())
+    seen: set[str] = set()
+    out: list[str] = []
+    for w in words:
+        if w in STOPWORDS or w in seen:
+            continue
+        seen.add(w)
+        out.append(w)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _find_related_briefs(ticket: dict[str, str], root: Path, limit: int, max_chars: int) -> str:
+    if not root.exists():
+        return ""
+    keywords = _extract_keywords(f"{ticket.get('title','')} {ticket.get('description','')}")
+    if not keywords:
+        return ""
+    scored: list[tuple[int, Path]] = []
+    for path in root.rglob("*.md"):
+        try:
+            text = _read_text(path).lower()
+        except Exception:
+            continue
+        score = sum(1 for k in keywords if k in text)
+        if score > 0:
+            scored.append((score, path))
+    if not scored:
+        return ""
+    scored.sort(key=lambda x: x[0], reverse=True)
+    top_paths = [p for _score, p in scored[:limit]]
+    related = _read_context(top_paths, max_chars)
+    if not related:
+        return ""
+    return "## RELATED BRIEFS\n\n" + related
 
 
 def _build_prompt(*, template: str, ticket: dict[str, str] | None, context: str) -> str:
@@ -228,6 +302,10 @@ def main() -> None:
     ap.add_argument("--template", type=str, default=str(DEFAULT_TEMPLATE), help="Template path")
     ap.add_argument("--out", type=str, default=None, help="Output brief path")
     ap.add_argument("--max-context-chars", type=int, default=12000)
+    ap.add_argument("--related-briefs-dir", type=str, default=str(DEFAULT_BRIEFS_DIR))
+    ap.add_argument("--related-briefs-limit", type=int, default=3)
+    ap.add_argument("--related-briefs-max-chars", type=int, default=3000)
+    ap.add_argument("--no-related-briefs", action="store_true", help="Skip local related-briefs lookup")
     ap.add_argument("--model", type=str, default=os.environ.get("CLAUDE_MODEL", "sonnet"))
     ap.add_argument("--critic", action="store_true", help="Run Codex critic and write a review file")
     ap.add_argument("--actor-critic", action="store_true", help="Generate per-section with Codex critique/rewrite")
@@ -250,6 +328,15 @@ def main() -> None:
 
     template_text = _read_text(Path(args.template))
     context_text = _read_context([Path(p) for p in args.context], args.max_context_chars)
+    related_text = ""
+    if ticket and not args.no_related_briefs:
+        related_text = _find_related_briefs(
+            ticket,
+            Path(args.related_briefs_dir),
+            args.related_briefs_limit,
+            args.related_briefs_max_chars,
+        )
+    combined_context = "\n\n".join(part for part in [context_text, related_text] if part)
     if args.actor_critic:
         if not args.evidence_first:
             # Default to evidence-first in actor-critic mode if not specified.
@@ -264,7 +351,7 @@ def main() -> None:
                 section_heading=section_heading,
                 section_body=section_body,
                 ticket=ticket,
-                context=context_text,
+                context=combined_context,
                 brief_so_far=brief_so_far,
             )
             if args.dry_run:
@@ -294,7 +381,7 @@ def main() -> None:
         ordered_sections = [generated_sections[idx] for idx in range(len(sections)) if idx in generated_sections]
         brief = "\n\n".join([part for part in brief_parts[:1] if part] + ordered_sections)
     else:
-        prompt = _build_prompt(template=template_text, ticket=ticket, context=context_text)
+        prompt = _build_prompt(template=template_text, ticket=ticket, context=combined_context)
         if args.dry_run:
             print(prompt)
             return
