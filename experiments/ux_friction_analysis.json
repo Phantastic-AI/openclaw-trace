@@ -1,0 +1,246 @@
+{
+  "experiment": "ux_friction_cron_spam",
+  "session_path": "/home/debian/clawd/home/tmp/sessions_latest_120_20260201_024756/0001_31e89d3b-7e8b-40d6-9ec1-61a5722a4000.jsonl",
+  "timestamp": "2026-02-01T21:58:25.854157+00:00",
+  "event_count": 3001,
+  "cron_event_count": 1433,
+  "analysis": {
+    "total_cron_events": 1433,
+    "error_labeled": 1430,
+    "user_role_cron": 1432,
+    "rapid_fire_count": 857,
+    "gap_min_ms": 646.0,
+    "gap_max_ms": 7209723.0,
+    "gap_mean_ms": 18316.50349162011,
+    "false_errors": 1029,
+    "error_samples": [
+      {
+        "index": 61,
+        "has_successful_content": false,
+        "preview": "System: [2026-01-31 16:02:10 UTC] Cron (error): I "
+      },
+      {
+        "index": 77,
+        "has_successful_content": true,
+        "preview": "System: [2026-01-31 19:00:14 UTC] Cron (error): Re"
+      },
+      {
+        "index": 79,
+        "has_successful_content": false,
+        "preview": "System: [2026-01-31 19:00:29 UTC] Cron (error): I "
+      },
+      {
+        "index": 81,
+        "has_successful_content": true,
+        "preview": "System: [2026-01-31 19:01:40 UTC] Cron (error): Re"
+      },
+      {
+        "index": 83,
+        "has_successful_content": true,
+        "preview": "System: [2026-01-31 19:01:48 UTC] Cron (error): Wa"
+      }
+    ]
+  },
+  "cron_events": [
+    {
+      "index": 61,
+      "timestamp": "2026-01-31T16:02:10.881Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 16:02:10 UTC] Cron (error): I can\u2019t apply this right now because the Gateway\u2019s `",
+      "content_length": 1160,
+      "time_since_last_cron_ms": null
+    },
+    {
+      "index": 64,
+      "timestamp": "2026-01-31T16:02:23.530Z",
+      "role": "assistant",
+      "is_cron": true,
+      "is_error": false,
+      "content_preview": "Cron needs attention: the Gateway `cron.*` API isn\u2019t responding right now (calls are timing out), an",
+      "content_length": 539,
+      "time_since_last_cron_ms": 12649.0
+    },
+    {
+      "index": 67,
+      "timestamp": "2026-01-31T17:00:06.535Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": false,
+      "content_preview": "System: [2026-01-31 17:00:05 UTC] Cron: Reminder received: **call Kevin Patel**.\n\nWant me to:\n1) dra",
+      "content_length": 392,
+      "time_since_last_cron_ms": 3463005.0
+    },
+    {
+      "index": 77,
+      "timestamp": "2026-01-31T19:00:16.258Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:00:14 UTC] Cron (error): Reminder received.\n\n**Suggested next steps**\n1. **Pi",
+      "content_length": 1450,
+      "time_since_last_cron_ms": 7209723.0
+    },
+    {
+      "index": 79,
+      "timestamp": "2026-01-31T19:00:30.477Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:00:29 UTC] Cron (error): I checked memory notes for prior context on Matthew ",
+      "content_length": 1601,
+      "time_since_last_cron_ms": 14219.0
+    },
+    {
+      "index": 81,
+      "timestamp": "2026-01-31T19:01:42.229Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:01:40 UTC] Cron (error): Reminder noted.\n\nI can\u2019t open the Phorge task/wiki l",
+      "content_length": 2052,
+      "time_since_last_cron_ms": 71752.0
+    },
+    {
+      "index": 83,
+      "timestamp": "2026-01-31T19:01:49.555Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:01:48 UTC] Cron (error): Want me to draft the outreach to Matthew (and a quic",
+      "content_length": 740,
+      "time_since_last_cron_ms": 7326.0
+    },
+    {
+      "index": 85,
+      "timestamp": "2026-01-31T19:01:56.407Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:01:54 UTC] Cron (error): Reminder received.\n\nBefore pinging Matthew, do you w",
+      "content_length": 712,
+      "time_since_last_cron_ms": 6852.0
+    },
+    {
+      "index": 87,
+      "timestamp": "2026-01-31T19:02:03.005Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:02:01 UTC] Cron (error): Got it. Before you reach out to Matthew, you wanted ",
+      "content_length": 1182,
+      "time_since_last_cron_ms": 6598.0
+    },
+    {
+      "index": 89,
+      "timestamp": "2026-01-31T19:02:13.222Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:02:11 UTC] Cron (error): Got it.\n\n1) Do you want me to message Margarita Gela",
+      "content_length": 1076,
+      "time_since_last_cron_ms": 10217.0
+    },
+    {
+      "index": 91,
+      "timestamp": "2026-01-31T19:02:19.774Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:02:18 UTC] Cron (error): Got it. Next step is to ping **Margarita Gelata** fo",
+      "content_length": 547,
+      "time_since_last_cron_ms": 6552.0
+    },
+    {
+      "index": 93,
+      "timestamp": "2026-01-31T19:02:27.074Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:02:25 UTC] Cron (error): Got it. Next step per the pre-req is to sync with **",
+      "content_length": 1341,
+      "time_since_last_cron_ms": 7300.0
+    },
+    {
+      "index": 95,
+      "timestamp": "2026-01-31T19:02:36.095Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:02:34 UTC] Cron (error): Got it.\n\nIf you want, here are two tight drafts you ",
+      "content_length": 1147,
+      "time_since_last_cron_ms": 9021.0
+    },
+    {
+      "index": 97,
+      "timestamp": "2026-01-31T19:02:44.242Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:02:43 UTC] Cron (error): Got it.\n\nIf you want, I can draft two short reach-ou",
+      "content_length": 585,
+      "time_since_last_cron_ms": 8147.0
+    },
+    {
+      "index": 99,
+      "timestamp": "2026-01-31T19:02:53.103Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:02:51 UTC] Cron (error): Got it. Before pinging Matthew, you want to consult ",
+      "content_length": 1245,
+      "time_since_last_cron_ms": 8861.0
+    },
+    {
+      "index": 101,
+      "timestamp": "2026-01-31T19:03:03.865Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:03:02 UTC] Cron (error): Want me to (a) draft the note to Matthew, or (b) act",
+      "content_length": 1267,
+      "time_since_last_cron_ms": 10762.0
+    },
+    {
+      "index": 103,
+      "timestamp": "2026-01-31T19:03:10.165Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:03:08 UTC] Cron (error): Got it. Next step is to ping **Margarita Gelata** fi",
+      "content_length": 640,
+      "time_since_last_cron_ms": 6300.0
+    },
+    {
+      "index": 105,
+      "timestamp": "2026-01-31T19:03:26.821Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:03:25 UTC] Cron (error): Got it.\n\n### 1) Pre-req (Margarita Gelata)\nI checked",
+      "content_length": 2079,
+      "time_since_last_cron_ms": 16656.0
+    },
+    {
+      "index": 107,
+      "timestamp": "2026-01-31T19:03:32.659Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:03:30 UTC] Cron (error): Reminder received.\n\nBefore you ping Matthew Tancik, ",
+      "content_length": 672,
+      "time_since_last_cron_ms": 5838.0
+    },
+    {
+      "index": 109,
+      "timestamp": "2026-01-31T19:03:48.307Z",
+      "role": "user",
+      "is_cron": true,
+      "is_error": true,
+      "content_preview": "System: [2026-01-31 19:03:46 UTC] Cron (error): If you want to do this \u201cright order\u201d per the reminde",
+      "content_length": 1752,
+      "time_since_last_cron_ms": 15648.0
+    }
+  ]
+}
