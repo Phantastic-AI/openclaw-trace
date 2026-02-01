@@ -145,6 +145,7 @@ def _cmd_mine_signals(argv: list[str]) -> None:
             f"[openclaw-trace] mine-signals: sessions={stats.get('sessions_scanned')}/{total} "
             f"items={stats.get('items_emitted')} with_items={stats.get('sessions_with_items')}",
             file=sys.stderr,
+            flush=True,
         )
 
     with out_jsonl.open("w", encoding="utf-8") as fh:
