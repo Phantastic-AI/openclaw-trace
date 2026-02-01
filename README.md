@@ -66,6 +66,22 @@ openclaw-trace mine-ideas \
 
 To enable LLM idea generation, omit `--no-llm` and set `OPENAI_API_KEY`.
 
+## Mine self-improvement signals (errors, frustration, suggestions)
+
+This mode crawls traces and asks an LLM to emit **grounded** signal items with short evidence quotes. v1 includes a PII redaction stub only (no redaction yet).
+
+Example invocation (LLM disabled, heuristic-only):
+
+```bash
+openclaw-trace mine-signals \
+  --sessions-dir /home/debian/.clawdbot/agents/main/sessions \
+  --include "**/*.jsonl" \
+  --max-sessions 50 \
+  --llm none \
+  --out-jsonl out_signals.jsonl \
+  --out-json out_signals.json
+```
+
 ## Run (no API key)
 
 If `OPENAI_API_KEY` is missing, the tool falls back to a deterministic stub.

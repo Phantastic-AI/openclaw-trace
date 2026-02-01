@@ -1,0 +1,7 @@
+{"type":"session","timestamp":"2026-01-30T00:00:00Z","id":"sess_1"}
+{"type":"message","timestamp":"2026-01-30T00:00:01Z","message":{"role":"user","content":"You're confusing me. How did we get snippets? This is frustrating."}}
+{"type":"message","timestamp":"2026-01-30T00:00:02Z","message":{"role":"assistant","content":"We mined candidate segments first, then used an LLM to structure them."}}
+{"type":"message","timestamp":"2026-01-30T00:00:03Z","message":{"role":"toolResult","toolName":"exec","details":{"status":"error","exitCode":127,"error":"/bin/bash: jq: command not found"},"content":[{"type":"text","text":"/bin/bash: jq: command not found\nCommand exited with code 127"}]}}
+{"type":"message","timestamp":"2026-01-30T00:00:04Z","message":{"role":"assistant","content":"We should add jq to the base image or avoid jq usage."}}
+{"type":"message","timestamp":"2026-01-30T00:00:05Z","message":{"role":"user","content":"We should run an ablation to see if chunk size affects recall."}}
+{"type":"message","timestamp":"2026-01-30T00:00:06Z","message":{"role":"user","content":"I opened an incident report about this failure."}}
