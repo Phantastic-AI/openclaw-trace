@@ -18,6 +18,9 @@ URL_RE = re.compile(r"https?://\S+")
 TOKEN_RE = re.compile(r"\b(sk-[A-Za-z0-9_-]{8,}|xox[baprs]-\S{6,}|ghp_\S{6,}|AKIA\S{8,})\b")
 LONGHEX_RE = re.compile(r"\b[0-9a-fA-F]{16,}\b")
 PATH_RE = re.compile(r"/(?:home|Users|var|etc|opt|srv)/[^\s]*")
+IP_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
+PHONE_RE = re.compile(r"\b(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?)?\d{3}[\s.-]?\d{4}\b")
+CARD_RE = re.compile(r"\b(?:\d[ -]*?){13,19}\b")
 
 STOPWORDS = {
     "the",
@@ -60,6 +63,9 @@ def _redact(text: str) -> str:
     text = TOKEN_RE.sub("[token]", text)
     text = LONGHEX_RE.sub("[id]", text)
     text = PATH_RE.sub("[path]", text)
+    text = IP_RE.sub("[ip]", text)
+    text = PHONE_RE.sub("[phone]", text)
+    text = CARD_RE.sub("[fin_id]", text)
     return text
 
 
@@ -134,6 +140,52 @@ def _score_group(*, count_items: int, max_sev: str, tag_counts: Counter, kind_co
     return score
 
 
+def _classify_kind_v2(item: Json) -> tuple[str, str]:
+    kind = (item.get("kind") or "").lower()
+    summary = (item.get("summary") or "").lower()
+    tags = set(t.lower() for t in (item.get("tags") or []) if isinstance(t, str))
+
+    def has(*terms: str) -> bool:
+        return any(t in summary for t in terms)
+
+    if kind == "error":
+        if has("timeout", "timed out", "rate limit", "usage limit", "quota", "latency", "slow", "flaky", "unavailable", "connection refused"):
+            return "reliability_perf", "error:reliability_perf"
+        return "defect", "error:defect"
+
+    if kind == "user_frustration":
+        return "ux_friction", "user_frustration:ux_friction"
+
+    if kind in {"improvement_suggestion", "experiment_suggestion"}:
+        if has("eval", "evaluation", "benchmark", "ablation", "experiment"):
+            return "process_tooling", "suggestion:process_tooling"
+        if has("tool", "integration", "feature", "capability", "missing"):
+            return "capability_gap", "suggestion:capability_gap"
+        if has("clarity", "confus", "ux", "format", "explain", "prompt"):
+            return "ux_friction", "suggestion:ux_friction"
+        if has("timeout", "latency", "slow", "rate limit"):
+            return "reliability_perf", "suggestion:reliability_perf"
+        if has("privacy", "pii", "safety", "policy", "refusal"):
+            return "safety_compliance", "suggestion:safety_compliance"
+        if "process" in tags or has("triage", "rollup", "pipeline", "logging", "metrics"):
+            return "process_tooling", "suggestion:process_tooling"
+        return "ux_friction", "suggestion:ux_friction"
+
+    if "process" in tags or has("triage", "rollup", "pipeline", "logging", "metrics"):
+        return "process_tooling", "other:process_tooling"
+
+    return "ux_friction", "other:ux_friction"
+
+
+def _sentiment(item: Json) -> str:
+    summary = (item.get("summary") or "").lower()
+    if (item.get("kind") or "").lower() == "user_frustration":
+        return "frustrated"
+    if any(k in summary for k in ("frustrat", "confus", "annoy", "upset", "not what i meant")):
+        return "frustrated"
+    return "neutral"
+
+
 @dataclass
 class RollupConfig:
     max_samples: int = 3
@@ -155,6 +207,8 @@ def rollup_signals(*, items: list[Json], cfg: RollupConfig) -> tuple[Json, list[
         count_sessions = len(sessions)
 
         kind_counts = Counter((g.get("kind") or "unknown") for g in group)
+        kind_v2_counts = Counter()
+        kind_v2_reasons = Counter()
         tag_counts = Counter(t for g in group for t in (g.get("tags") or []) if isinstance(t, str))
         max_sev = "unknown"
         max_sev_rank = -1
@@ -164,6 +218,9 @@ def rollup_signals(*, items: list[Json], cfg: RollupConfig) -> tuple[Json, list[
             if rank > max_sev_rank:
                 max_sev_rank = rank
                 max_sev = sev
+            kind_v2, reason = _classify_kind_v2(g)
+            kind_v2_counts[kind_v2] += 1
+            kind_v2_reasons[reason] += 1
 
         summaries = [_redact(g.get("summary") or "") for g in group if g.get("summary")]
         summary_counts = Counter(summaries)
@@ -190,6 +247,7 @@ def rollup_signals(*, items: list[Json], cfg: RollupConfig) -> tuple[Json, list[
                 "count_items": count_items,
                 "count_sessions": count_sessions,
                 "kind_counts": dict(kind_counts),
+                "kind_v2_counts": dict(kind_v2_counts),
                 "max_severity": max_sev,
                 "tier": tier,
                 "tier_reasons": tier_reasons,
@@ -197,6 +255,8 @@ def rollup_signals(*, items: list[Json], cfg: RollupConfig) -> tuple[Json, list[
                 "tags_top": tag_counts.most_common(cfg.max_tags),
                 "canonical_summary": canonical_summary,
                 "sample_refs": samples,
+                "sentiment": Counter(_sentiment(g) for g in group).most_common(1)[0][0] if group else "neutral",
+                "kind_v2_reason_top": kind_v2_reasons.most_common(2),
             }
         )
 
@@ -221,4 +281,3 @@ def load_items(path: Path) -> list[Json]:
             continue
         items.append(json.loads(line))
     return items
-
