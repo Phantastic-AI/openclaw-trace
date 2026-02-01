@@ -93,6 +93,16 @@ openclaw-trace rollup-signals \
   --out-md rollup.md
 ```
 
+## Ticketing from rollups (create/update Phorge tasks)
+
+This script scans recent tasks for `fingerprint_id` and creates/updates tickets based on rollups.
+
+```bash
+python scripts/ticket_rollup.py \
+  --in-json /home/debian/clawd/home/tmp/rollup_latest120.json \
+  --dry-run
+```
+
 ## Research briefs (template + headless runner)
 
 Template:
