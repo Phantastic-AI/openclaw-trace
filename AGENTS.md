@@ -12,16 +12,16 @@ Instructions for AI coding agents (Codex, Claude Code, etc.) working on **opencl
 
 **Subtasks:** Create subtasks under T145 for discrete pieces of work. Use `parent` transaction:
 ```bash
-cat > /tmp/subtask.json <<'JSON'
+cat > /home/debian/clawd/home/tmp/subtask.json <<'JSON'
 {"title":"Implement chunking strategy","description":"Per Oracle guidance...","priority":80,"parent":"T145"}
 JSON
-sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.createtask --as admin --input /tmp/subtask.json
+sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.createtask --as admin --input /home/debian/clawd/home/tmp/subtask.json
 ```
 
-**Exec plans:** For substantial work, create an exec plan using the template:
-- Template: https://github.com/ninjaa/openai-codex-exec-plan/blob/main/.agents/template/PLAN.md
-- Save as `.agents/plans/<task-id>/PLAN.md` in this repo
-- Update progress in the plan as you work
+**Exec plans (ergonomic default):**
+- Template: `.agents/template/PLAN.md` (local copy)
+- Primary: post the plan in the Phorge task (description or comment) and keep it updated there
+- Optional: keep a local working copy in `/home/debian/clawd/home/tmp/plan-<task-id>.md` if drafting; do not rely on `.agents/**` for status
 
 **Project:** `#hal-self-improvement` — https://hub.phantastic.ai/tag/hal-self-improvement/
 
@@ -50,16 +50,16 @@ printf '{"constraints":{"ids":[145]},"limit":1}' \
   | sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.search --as admin --input -
 
 # Create task
-cat > /tmp/task.json <<'JSON'
+cat > /home/debian/clawd/home/tmp/task.json <<'JSON'
 {"title":"My task","description":"Details here","priority":80}
 JSON
-sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.createtask --as admin --input /tmp/task.json
+sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.createtask --as admin --input /home/debian/clawd/home/tmp/task.json
 
 # Edit task (e.g., close it)
-cat > /tmp/edit.json <<'JSON'
+cat > /home/debian/clawd/home/tmp/edit.json <<'JSON'
 {"objectIdentifier":"145","transactions":[{"type":"status","value":"resolved"}]}
 JSON
-sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.edit --as admin --input /tmp/edit.json
+sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.edit --as admin --input /home/debian/clawd/home/tmp/edit.json
 ```
 
 ### Wiki (Phriction)
@@ -70,16 +70,16 @@ printf '{"constraints":{"ancestorPaths":["people/"]},"limit":5}' \
   | sudo /srv/phorge/phorge/bin/conduit call --local --method phriction.document.search --as admin --input -
 
 # Create wiki page (parent must exist)
-cat > /tmp/wiki.json <<'JSON'
+cat > /home/debian/clawd/home/tmp/wiki.json <<'JSON'
 {"slug":"hal/my-page","title":"My Page","content":"Content here"}
 JSON
-sudo /srv/phorge/phorge/bin/conduit call --local --method phriction.create --as admin --input /tmp/wiki.json
+sudo /srv/phorge/phorge/bin/conduit call --local --method phriction.create --as admin --input /home/debian/clawd/home/tmp/wiki.json
 
 # Edit wiki page
-cat > /tmp/wiki_edit.json <<'JSON'
+cat > /home/debian/clawd/home/tmp/wiki_edit.json <<'JSON'
 {"slug":"hal/my-page","content":"Updated content","description":"Edit summary"}
 JSON
-sudo /srv/phorge/phorge/bin/conduit call --local --method phriction.edit --as admin --input /tmp/wiki_edit.json
+sudo /srv/phorge/phorge/bin/conduit call --local --method phriction.edit --as admin --input /home/debian/clawd/home/tmp/wiki_edit.json
 ```
 
 ### Web UI
@@ -132,7 +132,7 @@ npx -y @steipete/oracle --model gemini-3-pro --file <files> -p "your prompt"
 ## Workflow
 
 1. **Check for existing Phorge ticket** before starting work
-2. **Create exec plan** in `/tmp/plan-<task-id>.md` or inline in ticket description
+2. **Create exec plan** using `.agents/template/PLAN.md`; post and maintain it in the Phorge ticket (description or comment). Use `/home/debian/clawd/home/tmp/plan-<task-id>.md` only as a draft.
 3. **Commit incrementally** with `T<id>` in commit messages
 4. **Update ticket** when done (status → resolved)
 
