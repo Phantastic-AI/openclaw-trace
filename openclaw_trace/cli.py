@@ -59,85 +59,6 @@ def _cmd_analyze(argv: list[str]) -> None:
         Path(args.out).write_text(s, encoding="utf-8")
 
 
-def _cmd_mine_ideas(argv: list[str]) -> None:
-    from .mine_ideas import DEFAULT_KEYWORDS, MineIdeasConfig, mine_ideas, render_markdown
-
-    ap = argparse.ArgumentParser(
-        prog="openclaw-trace mine-ideas",
-        description="Crawl many session jsonl files and mine frontier experiment ideas.",
-    )
-    ap.add_argument(
-        "--sessions-dir",
-        default="/home/debian/.clawdbot/agents/main/sessions",
-        help="Directory containing session .jsonl files",
-    )
-    ap.add_argument(
-        "--include",
-        action="append",
-        default=["*.jsonl", "**/*.jsonl"],
-        help="Glob(s) relative to sessions-dir to include (repeatable)",
-    )
-    ap.add_argument(
-        "--exclude",
-        action="append",
-        default=[],
-        help="Glob(s) relative to sessions-dir to exclude (repeatable)",
-    )
-    ap.add_argument("--max-sessions", type=int, default=None)
-    ap.add_argument("--max-matches-per-session", type=int, default=40)
-    ap.add_argument("--max-snippet-chars", type=int, default=800)
-    ap.add_argument("--dry-run", action="store_true", help="Only scan traces + write candidate segments (no LLM)")
-    ap.add_argument("--llm", choices=["openai", "none"], default="openai")
-    ap.add_argument("--temperature", type=float, default=0.0)
-    ap.add_argument(
-        "--keywords",
-        type=str,
-        default=",".join(DEFAULT_KEYWORDS),
-        help="Comma-separated keywords to seed deterministic candidate mining",
-    )
-    ap.add_argument(
-        "--out-json",
-        type=str,
-        default="out_mine_ideas.json",
-        help="Output JSON path",
-    )
-    ap.add_argument(
-        "--out-md",
-        type=str,
-        default="out_mine_ideas.md",
-        help="Output Markdown report path",
-    )
-
-    args = ap.parse_args(argv)
-
-    kw = [k.strip() for k in (args.keywords or "").split(",") if k.strip()]
-
-    llm = NoLLMClient() if (args.llm == "none" or args.dry_run) else _build_llm(args.llm)
-
-    cfg = MineIdeasConfig(
-        sessions_dir=Path(args.sessions_dir),
-        include=args.include or [],
-        exclude=args.exclude or [],
-        max_sessions=args.max_sessions,
-        max_matches_per_session=args.max_matches_per_session,
-        max_snippet_chars=args.max_snippet_chars,
-        use_llm=not args.dry_run and args.llm != "none",
-        temperature=args.temperature,
-    )
-
-    report = mine_ideas(llm=llm, cfg=cfg, keywords=kw)
-
-    # Always print a tiny sanity line so it's obvious what we scanned.
-    try:
-        matched = len(report.get("results", []))
-    except Exception:
-        matched = "?"
-    print(f"[openclaw-trace] mine-ideas: sessionsDir={cfg.sessions_dir} matched={matched}", file=sys.stderr)
-
-    Path(args.out_json).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
-    Path(args.out_md).write_text(render_markdown(report), encoding="utf-8")
-
-
 def _cmd_mine_signals(argv: list[str]) -> None:
     from .mine_signals import MineSignalsConfig, mine_signals
 
@@ -284,14 +205,12 @@ def main() -> None:
     # Single, explicit CLI surface (no legacy aliases or implicit dispatch).
     # Use:
     # - `openclaw-trace analyze ...`
-    # - `openclaw-trace mine-ideas ...`
     # - `openclaw-trace mine-signals ...`
     # - `openclaw-trace rollup-signals ...`
     ap = argparse.ArgumentParser(prog="openclaw-trace")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("analyze", help="Analyze a single transcript")
-    sub.add_parser("mine-ideas", help="Mine frontier experiment ideas from many traces")
     sub.add_parser("mine-signals", help="Mine self-improvement signals from many traces")
     sub.add_parser("rollup-signals", help="Roll up mined signals into ranked clusters")
 
@@ -299,8 +218,6 @@ def main() -> None:
 
     if ns.cmd == "analyze":
         _cmd_analyze(sys.argv[2:])
-    elif ns.cmd == "mine-ideas":
-        _cmd_mine_ideas(sys.argv[2:])
     elif ns.cmd == "mine-signals":
         _cmd_mine_signals(sys.argv[2:])
     elif ns.cmd == "rollup-signals":
