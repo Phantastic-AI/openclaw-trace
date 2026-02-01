@@ -7,12 +7,18 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Optional
 
 DEFAULT_TEMPLATE = Path(__file__).resolve().parents[1] / "docs" / "research-briefs" / "BRIEF_TEMPLATE.md"
 DEFAULT_BRIEFS_DIR = Path(__file__).resolve().parents[1] / "docs" / "research-briefs"
 PHORGE_URL = "https://hub.phantastic.ai"
+DEFAULT_ALLOW_DIRS = [
+    "/home/debian/clawd",
+    "/home/debian/clawdbot",
+    "/home/debian/.clawdbot",
+]
 
 STOPWORDS = {
     "the",
@@ -87,6 +93,15 @@ def _fetch_ticket(ticket_id: int) -> dict[str, str]:
     }
 
 
+def _load_ticket_file(path: Path) -> dict[str, str]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {
+        "title": data.get("title") or f"T{data.get('id','')}".strip(),
+        "description": data.get("description") or data.get("body") or "",
+        "url": data.get("url") or data.get("link") or "Unknown",
+    }
+
+
 def _read_context(paths: list[Path], max_chars: int) -> str:
     if not paths:
         return ""
@@ -143,7 +158,15 @@ def _find_related_briefs(ticket: dict[str, str], root: Path, limit: int, max_cha
     return "## RELATED BRIEFS\n\n" + related
 
 
-def _build_prompt(*, template: str, ticket: dict[str, str] | None, context: str) -> str:
+def _build_prompt(
+    *,
+    template: str,
+    ticket: dict[str, str] | None,
+    context: str,
+    sources: str,
+    style: str,
+    strict_grounding: bool,
+) -> str:
     system_context = (
         "You are writing a research brief for a recursive self-improvement system. "
         "Some issues are objective bugs/patches, some are subjective opportunities to delight, "
@@ -151,6 +174,14 @@ def _build_prompt(*, template: str, ticket: dict[str, str] | None, context: str)
         "Follow the template exactly. Output markdown only. Keep it concise. "
         "If information is missing, write 'Unknown' and add a validation test."
     )
+    if strict_grounding:
+        system_context += (
+            " You may ONLY use facts that appear in the ticket or the provided context. "
+            "Do not invent dashboards, PRs, metrics, timelines, or external systems. "
+            "If a detail is not in evidence, mark it Unknown."
+        )
+    if style:
+        system_context += f" Style guidance: {style}"
 
     ticket_block = ""
     if ticket:
@@ -162,6 +193,7 @@ def _build_prompt(*, template: str, ticket: dict[str, str] | None, context: str)
 
     return (
         f"{system_context}\n\n"
+        f"{sources}\n\n"
         f"{ticket_block}\n"
         f"{context}\n\n"
         "TEMPLATE (fill in all sections):\n\n"
@@ -214,6 +246,9 @@ def _build_section_prompt(
     ticket: dict[str, str] | None,
     context: str,
     brief_so_far: str,
+    sources: str,
+    style: str,
+    strict_grounding: bool,
 ) -> str:
     system_context = (
         "You are writing a research brief for a recursive self-improvement system. "
@@ -222,6 +257,14 @@ def _build_section_prompt(
         "Fill only the requested section. Output markdown only. Keep it concise. "
         "If information is missing, write 'Unknown' and add a validation test."
     )
+    if strict_grounding:
+        system_context += (
+            " You may ONLY use facts that appear in the ticket or the provided context. "
+            "Do not invent dashboards, PRs, metrics, timelines, or external systems. "
+            "If a detail is not in evidence, mark it Unknown."
+        )
+    if style:
+        system_context += f" Style guidance: {style}"
     ticket_block = ""
     if ticket:
         ticket_block = (
@@ -231,6 +274,7 @@ def _build_section_prompt(
         )
     return (
         f"{system_context}\n\n"
+        f"{sources}\n\n"
         f"{ticket_block}\n"
         f"{context}\n\n"
         "BRIEF SO FAR:\n"
@@ -249,23 +293,58 @@ def _build_section_revision_prompt(*, section_text: str, critic_notes: str) -> s
     )
 
 
-def _run_claude(prompt: str, model: str) -> str:
+def _build_brief_revision_prompt(*, brief_text: str, critic_notes: str) -> str:
+    return (
+        "Revise the full research brief using the critic notes. "
+        "Remove or mark any unsupported claims as 'Unknown'. Output ONLY the revised brief.\n\n"
+        f"CRITIC NOTES:\n{critic_notes}\n\n"
+        f"BRIEF:\n{brief_text}\n"
+    )
+
+
+def _run_claude(prompt: str, model: str, add_dirs: list[str]) -> str:
     cmd = [
         "claude",
         "-p",
         "--print",
         "--output-format",
         "text",
-        "--permission-mode",
-        "dontAsk",
+        "--dangerously-skip-permissions",
         "--model",
         model,
         prompt,
     ]
+    for d in add_dirs:
+        cmd.extend(["--add-dir", d])
     proc = subprocess.run(cmd, text=True, capture_output=True, check=False)
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.strip() or "Claude CLI failed")
     return proc.stdout
+
+
+def _run_codex(prompt: str, model: str) -> str:
+    with tempfile.TemporaryDirectory() as td:
+        out_path = Path(td) / "codex_last_message.txt"
+        cmd = [
+            "codex",
+            "exec",
+            "--output-last-message",
+            str(out_path),
+            "-m",
+            model,
+        ]
+        proc = subprocess.run(cmd, input=prompt, text=True, capture_output=True, check=False)
+        if proc.returncode != 0:
+            raise RuntimeError(proc.stderr.strip() or "Codex exec failed")
+        if not out_path.exists():
+            raise RuntimeError("Codex did not produce an output message")
+        return out_path.read_text(encoding="utf-8", errors="replace")
+
+
+def _run_generator(prompt: str, args: argparse.Namespace, add_dirs: list[str]) -> str:
+    if args.gen_backend == "codex":
+        return _run_codex(prompt, args.gen_model)
+    return _run_claude(prompt, args.model, add_dirs)
 
 
 def _run_codex_critic(brief: str, model: str) -> str:
@@ -284,6 +363,7 @@ def _run_codex_critic(brief: str, model: str) -> str:
 def _run_codex_section_critic(section_text: str, model: str) -> str:
     prompt = (
         "Critique this single research-brief section for missing evidence, gaps, or vague claims. "
+        "Flag any statements that appear unsupported or overly specific. "
         "Return concise bullets with concrete fixes. If it is solid, return 'OK'.\n\n"
         f"{section_text}\n"
     )
@@ -294,10 +374,30 @@ def _run_codex_section_critic(section_text: str, model: str) -> str:
     return proc.stdout
 
 
+def _run_codex_grounding_check(brief_text: str, evidence_text: str, model: str) -> str:
+    prompt = (
+        "You are a grounding checker. Use ONLY the EVIDENCE below. "
+        "List any claims in the BRIEF that are not explicitly supported by the evidence. "
+        "If all claims are supported, return 'OK'.\n\n"
+        f"EVIDENCE:\n{evidence_text}\n\n"
+        f"BRIEF:\n{brief_text}\n"
+    )
+    cmd = ["codex", "exec", "-c", f'model="{model}"', prompt]
+    proc = subprocess.run(cmd, text=True, capture_output=True, check=False)
+    if proc.returncode != 0:
+        raise RuntimeError(proc.stderr.strip() or "Codex exec failed")
+    return proc.stdout
+
+
+def _run_claude_critic(prompt: str, model: str, add_dirs: list[str]) -> str:
+    return _run_claude(prompt, model, add_dirs).strip()
+
+
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Headless research-brief runner (Claude Code + optional Codex critic)")
+    ap = argparse.ArgumentParser(description="Headless research-brief runner (Codex/Claude + optional Codex critic)")
     ap.add_argument("--ticket-id", type=int, default=None, help="Phorge ticket ID (e.g., 145)")
     ap.add_argument("--ticket-url", type=str, default=None, help="Phorge ticket URL (overrides ticket-id URL)")
+    ap.add_argument("--ticket-file", type=str, default=None, help="Local ticket JSON with title/description/url")
     ap.add_argument("--context", action="append", default=[], help="Context file(s) to include (repeatable)")
     ap.add_argument("--template", type=str, default=str(DEFAULT_TEMPLATE), help="Template path")
     ap.add_argument("--out", type=str, default=None, help="Output brief path")
@@ -306,19 +406,56 @@ def main() -> None:
     ap.add_argument("--related-briefs-limit", type=int, default=3)
     ap.add_argument("--related-briefs-max-chars", type=int, default=3000)
     ap.add_argument("--no-related-briefs", action="store_true", help="Skip local related-briefs lookup")
-    ap.add_argument("--model", type=str, default=os.environ.get("CLAUDE_MODEL", "sonnet"))
+    ap.add_argument("--model", type=str, default=os.environ.get("CLAUDE_MODEL", "opus"), help="Claude model name")
     ap.add_argument("--critic", action="store_true", help="Run Codex critic and write a review file")
     ap.add_argument("--actor-critic", action="store_true", help="Generate per-section with Codex critique/rewrite")
     ap.add_argument("--evidence-first", action="store_true", help="Draft Evidence snapshot first and use it as context")
     ap.add_argument("--critic-model", type=str, default=os.environ.get("CODEX_MODEL", "gpt-5.2-codex"))
+    ap.add_argument(
+        "--gen-backend",
+        choices=["codex", "claude"],
+        default=os.environ.get("BRIEF_GEN_BACKEND", "codex"),
+    )
+    ap.add_argument(
+        "--gen-model",
+        type=str,
+        default=os.environ.get("CODEX_MODEL", "gpt-5.2-codex"),
+        help="Codex model name for brief generation",
+    )
+    ap.add_argument(
+        "--critic-backend",
+        choices=["codex", "claude", "none"],
+        default="codex",
+        help="Critic backend for actor-critic and full review",
+    )
+    ap.add_argument(
+        "--grounding-backend",
+        choices=["codex", "claude", "none"],
+        default="codex",
+        help="Backend for grounding check",
+    )
+    ap.add_argument("--style", type=str, default="", help="Additional style guidance for the brief")
+    ap.add_argument("--style-file", type=str, default=None, help="Optional file containing style guidance text")
+    ap.add_argument("--strict-grounding", action="store_true", help="Require evidence-only claims")
+    ap.add_argument("--grounding-check", action="store_true", help="Run a Codex grounding check on the final brief")
+    ap.add_argument("--add-dir", action="append", default=[], help="Allow Claude tool access to directory (repeatable)")
     ap.add_argument("--dry-run", action="store_true", help="Print prompt and exit")
 
     args = ap.parse_args()
+    add_dirs = DEFAULT_ALLOW_DIRS[:]
+    for d in args.add_dir:
+        if d not in add_dirs:
+            add_dirs.append(d)
 
     ticket: Optional[dict[str, str]] = None
     if args.ticket_id:
         try:
             ticket = _fetch_ticket(args.ticket_id)
+        except Exception as exc:
+            print(f"[brief-runner] WARN: {exc}", file=sys.stderr)
+    elif args.ticket_file:
+        try:
+            ticket = _load_ticket_file(Path(args.ticket_file))
         except Exception as exc:
             print(f"[brief-runner] WARN: {exc}", file=sys.stderr)
     if ticket and args.ticket_url:
@@ -327,7 +464,8 @@ def main() -> None:
         ticket = {"title": f"T{args.ticket_id or ''}", "description": "", "url": args.ticket_url}
 
     template_text = _read_text(Path(args.template))
-    context_text = _read_context([Path(p) for p in args.context], args.max_context_chars)
+    context_paths = [Path(p) for p in args.context]
+    context_text = _read_context(context_paths, args.max_context_chars)
     related_text = ""
     if ticket and not args.no_related_briefs:
         related_text = _find_related_briefs(
@@ -337,6 +475,21 @@ def main() -> None:
             args.related_briefs_max_chars,
         )
     combined_context = "\n\n".join(part for part in [context_text, related_text] if part)
+    style_text = args.style
+    if args.style_file:
+        try:
+            style_text = (style_text + "\n" if style_text else "") + _read_text(Path(args.style_file)).strip()
+        except Exception as exc:
+            print(f"[brief-runner] WARN: failed to read style-file: {exc}", file=sys.stderr)
+
+    sources_list: list[str] = []
+    if ticket:
+        sources_list.append(f"- ticket: {ticket.get('url','Unknown')}")
+    for path in context_paths:
+        sources_list.append(f"- context file: {path}")
+    if related_text and not args.no_related_briefs:
+        sources_list.append(f"- related briefs: {Path(args.related_briefs_dir)}")
+    sources_block = "EVIDENCE SOURCES (only these may be referenced):\n" + ("\n".join(sources_list) if sources_list else "- None")
     if args.actor_critic:
         if not args.evidence_first:
             # Default to evidence-first in actor-critic mode if not specified.
@@ -353,14 +506,31 @@ def main() -> None:
                 ticket=ticket,
                 context=combined_context,
                 brief_so_far=brief_so_far,
+                sources=sources_block,
+                style=style_text,
+                strict_grounding=args.strict_grounding,
             )
             if args.dry_run:
                 print(section_prompt)
                 raise SystemExit(0)
-            draft = _run_claude(section_prompt, args.model).strip()
-            critic = _run_codex_section_critic(draft, args.critic_model).strip()
+            draft = _run_generator(section_prompt, args, add_dirs).strip()
+            critic = "OK"
+            if args.critic_backend == "codex":
+                critic = _run_codex_section_critic(draft, args.critic_model).strip()
+            elif args.critic_backend == "claude":
+                critic_prompt = (
+                    "Critique this single research-brief section for missing evidence, gaps, or vague claims. "
+                    "Flag any statements that appear unsupported or overly specific. "
+                    "Return concise bullets with concrete fixes. If it is solid, return 'OK'.\n\n"
+                    f"{draft}\n"
+                )
+                critic = _run_claude_critic(critic_prompt, args.model, add_dirs)
             if critic.lower() != "ok":
-                draft = _run_claude(_build_section_revision_prompt(section_text=draft, critic_notes=critic), args.model).strip()
+                draft = _run_generator(
+                    _build_section_revision_prompt(section_text=draft, critic_notes=critic),
+                    args,
+                    add_dirs,
+                ).strip()
             return draft
 
         if args.evidence_first:
@@ -381,11 +551,39 @@ def main() -> None:
         ordered_sections = [generated_sections[idx] for idx in range(len(sections)) if idx in generated_sections]
         brief = "\n\n".join([part for part in brief_parts[:1] if part] + ordered_sections)
     else:
-        prompt = _build_prompt(template=template_text, ticket=ticket, context=combined_context)
+        prompt = _build_prompt(
+            template=template_text,
+            ticket=ticket,
+            context=combined_context,
+            sources=sources_block,
+            style=style_text,
+            strict_grounding=args.strict_grounding,
+        )
         if args.dry_run:
             print(prompt)
             return
-        brief = _run_claude(prompt, args.model)
+        brief = _run_generator(prompt, args, add_dirs)
+
+    if args.grounding_check:
+        evidence_text = "\n\n".join(part for part in [sources_block, ticket.get("description", "") if ticket else "", combined_context] if part)
+        grounding = "OK"
+        if args.grounding_backend == "codex":
+            grounding = _run_codex_grounding_check(brief, evidence_text, args.critic_model).strip()
+        elif args.grounding_backend == "claude":
+            grounding_prompt = (
+                "You are a grounding checker. Use ONLY the EVIDENCE below. "
+                "List any claims in the BRIEF that are not explicitly supported by the evidence. "
+                "If all claims are supported, return 'OK'.\n\n"
+                f"EVIDENCE:\n{evidence_text}\n\n"
+                f"BRIEF:\n{brief}\n"
+            )
+            grounding = _run_claude_critic(grounding_prompt, args.model, add_dirs)
+        if grounding.lower() != "ok":
+            brief = _run_generator(
+                _build_brief_revision_prompt(brief_text=brief, critic_notes=grounding),
+                args,
+                add_dirs,
+            ).strip()
 
     out_path: Path
     if args.out:
@@ -400,10 +598,20 @@ def main() -> None:
     print(f"[brief-runner] wrote {out_path}")
 
     if args.critic:
-        review = _run_codex_critic(brief, args.critic_model)
-        review_path = out_path.with_name(out_path.stem + ".codex-review.md")
-        review_path.write_text(review, encoding="utf-8")
-        print(f"[brief-runner] wrote {review_path}")
+        review = ""
+        review_path = out_path.with_name(out_path.stem + ".review.md")
+        if args.critic_backend == "codex":
+            review = _run_codex_critic(brief, args.critic_model)
+        elif args.critic_backend == "claude":
+            review_prompt = (
+                "Review this research brief for gaps, weak evidence, and missing RCA validation tests. "
+                "Return concise bullets with concrete fixes.\n\n"
+                f"{brief}\n"
+            )
+            review = _run_claude_critic(review_prompt, args.model, add_dirs)
+        if review:
+            review_path.write_text(review, encoding="utf-8")
+            print(f"[brief-runner] wrote {review_path}")
 
 
 if __name__ == "__main__":

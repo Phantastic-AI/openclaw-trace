@@ -1,0 +1,8 @@
+- Ticket field is not verbatim; use the exact title from `docs/research-briefs/demo-top/user_delight/ticket.json:2` or set it to Unknown.  
+- Problem line adds inference (“not a problem report”); remove that clause and keep only evidence-backed facts (kind=user_delight) from `docs/research-briefs/demo-top/user_delight/context.md:12`.  
+- Score is rounded; replace 3.69 with the exact value 3.6931471805599454 from `docs/research-briefs/demo-top/user_delight/context.md:10` or mark Unknown.  
+- RCA block contains unsupported judgments (“not a defect,” “not applicable,” “Confidence: N/A”); set all RCA subfields to Unknown until evidence exists (source lacks RCA evidence in `docs/research-briefs/demo-top/user_delight/context.md:1`).  
+- Validation tests are missing; add “Validation tests: Unknown — define once RCA is established” and remove “Not applicable.”  
+- Acceptance checklist is editorial, not evidence-backed; move it to a separate “Editorial QA” section or mark Unknown.  
+- Links/Filename convention are not in evidence; remove them or mark Unknown, or move to an explicit “Out‑of‑band references” section.  
+- If you want to note evidence strength (e.g., n=1 snippet, missing timestamp/actor), you need that metadata; it’s absent from `docs/research-briefs/demo-top/user_delight/context.md:1` and `docs/research-briefs/demo-top/user_delight/ticket.json:1`, so keep it Unknown.

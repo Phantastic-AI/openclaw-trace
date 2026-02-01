@@ -1,0 +1,7 @@
+- Header claims “Origin: Demo://rollup” and “Ticket: Demo - …” aren’t in `context.md`; replace with “Rollup summary” and drop ticket fields until a real task ID exists.
+- Problem section lacks execution context (which script/command, user, PATH, cwd); add a “needed evidence” line and collect those fields from the signal so RCA can target the right layer.
+- RCA is empty; add evidence‑based hypotheses: `xxd` not installed, PATH misconfigured, non‑root access to `/etc/x11vnc/passwd` blocked.
+- Missing RCA validation tests: add repros for missing `xxd` (uninstall/alter PATH) and permission denied (run as non‑root) with expected behavior (preflight error, actionable log, non‑zero exit).
+- Unclear if both errors came from the same command sequence; add a correlation check (timestamps/session IDs) or a test that runs the same script line 3 to confirm linkage.
+- Success metrics/options/recommendation are empty; add minimal, testable targets (e.g., preflight catches missing deps, permission errors become structured user‑facing messages) and one option per hypothesis.
+- Evidence snapshot omits `kind_v2_counts` capability_gap; either add it as a data point or remove “capability_gap” mentions to avoid implying unsupported scope.

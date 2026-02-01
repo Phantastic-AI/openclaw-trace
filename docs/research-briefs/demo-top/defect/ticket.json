@@ -1,0 +1,5 @@
+{
+  "title": "Signal (demo): HTTP Conduit calls with api.token are consistently broken for search/read methods",
+  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: HTTP Conduit calls with api.token are consistently broken for search/read methods",
+  "url": "Demo://rollup"
+}

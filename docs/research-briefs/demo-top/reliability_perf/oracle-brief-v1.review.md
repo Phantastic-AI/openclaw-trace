@@ -1,0 +1,7 @@
+- Evidence is mostly derived rollup summaries/tags; replace with raw transcript/log lines (message IDs, roles, timestamps) to prove “no assistant response” and “cannot proceed.”
+- Error text alone does not validate quota/rate‑limit; add HTTP status + full response payload + `x‑ratelimit-*` headers or server quota logs to confirm cause and plan type.
+- No timeline; add per‑message timestamps and session ordering to support “repeated” errors and any countdown interpretation.
+- RCA “Evidence FOR” uses labels (incident tag/kind) which are not causal; swap in concrete signals (rate‑limit counters, billing/quota state, backend reject reason) and include at least one disconfirming check.
+- RCA validation tests missing; add: reproduce via direct API call with same account, compare against a control account, wait for reset window and re‑test, and verify client vs server by bypassing UI.
+- Repro steps and environment missing; record surface (web/app/API), build/version, region, and exact steps until limit triggers.
+- Success metrics/decision/next step absent; define target outcome (e.g., error rate ≤X% or recovery ≤Y minutes) and pick Act/Experiment/Defer with owner.

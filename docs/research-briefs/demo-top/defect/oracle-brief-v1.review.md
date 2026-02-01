@@ -1,0 +1,8 @@
+- “Consistently broken” is overstated for 3 signals; add a controlled repro run (N calls over a defined time window) and report success rate with counts.
+- Environment is blank; record base URL/host, env (prod/stage), Phorge/Phabricator build hash, and client version tied to the “On this host” evidence.
+- Request/response details are missing; include one raw HTTP example (method, endpoint, params, content-type) plus status code and full error payload.
+- Scope is vague (“search/read methods”); define scope and run a method matrix (multiple search/read methods + a known‑good method) with results table.
+- Token validity is unproven; verify the same `api.token` with `user.whoami`/`conduit.ping`, compare against a known‑good token, and confirm permissions.
+- RCA section is empty; enumerate 2–4 concrete hypotheses and map each to specific evidence.
+- RCA validation tests are missing; add server auth log checks, compare `conduit call` vs raw HTTP, and test JSON vs form encoding to rule out parser issues.
+- Decision/next step/stop conditions are missing; specify next action (repro + log capture), success criteria (token auth works for N calls), and explicit stop condition.

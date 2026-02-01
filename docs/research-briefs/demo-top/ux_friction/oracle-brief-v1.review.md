@@ -1,0 +1,8 @@
+- Unsupported claim: “Repeated 502 errors and missing session keys block progress…” Remove or mark as inference; evidence only shows two error strings.
+- Unsupported context: “task context retrieval workflow.” Delete unless it appears in evidence; otherwise set “context unknown.”
+- Metadata overreach: kind/fingerprint/signature/item_id aren’t in the stated evidence list; either quote context.md proving them or drop/label as inferred from filename.
+- Internal inconsistency: “Proposed next step = Experiment” vs “Recommendation = Unknown.” Pick Option B and state the decision, or move proposed step to TBD.
+- Acceptance checklist is inaccurate (says no decision statement/rationale). Rewrite it to list only real blockers (ticket link, DRI, missing data).
+- Missing RCA validation tests: add concrete tests—expire session token and retry; corrupt/clear session store; trace request IDs across gateway/upstream; correlate 502s with invalid-session events; check gateway/upstream health and timeouts; compare rates across endpoints/time windows.
+- Options section is empty: add owner, timeframe, data sources, and expected signal per option.
+- Success metrics/out-of-scope are blank: define investigation metrics (baseline 502 rate, invalid-session rate, log coverage %, repro rate) and explicit non-goals.

@@ -1,0 +1,51 @@
+[
+  {
+    "kind": "capability_gap",
+    "dir": "docs/research-briefs/demo-top/capability_gap",
+    "ticket": "docs/research-briefs/demo-top/capability_gap/ticket.json",
+    "context": "docs/research-briefs/demo-top/capability_gap/context.md",
+    "summary": "Improve handling of missing commands and permission errors in logs"
+  },
+  {
+    "kind": "defect",
+    "dir": "docs/research-briefs/demo-top/defect",
+    "ticket": "docs/research-briefs/demo-top/defect/ticket.json",
+    "context": "docs/research-briefs/demo-top/defect/context.md",
+    "summary": "HTTP Conduit calls with api.token are consistently broken for search/read methods"
+  },
+  {
+    "kind": "proactive_opportunity",
+    "dir": "docs/research-briefs/demo-top/proactive_opportunity",
+    "ticket": "docs/research-briefs/demo-top/proactive_opportunity/ticket.json",
+    "context": "docs/research-briefs/demo-top/proactive_opportunity/context.md",
+    "summary": "Proactively notify system maintainers about the runaway cron job causing repeated errors."
+  },
+  {
+    "kind": "process_tooling",
+    "dir": "docs/research-briefs/demo-top/process_tooling",
+    "ticket": "docs/research-briefs/demo-top/process_tooling/ticket.json",
+    "context": "docs/research-briefs/demo-top/process_tooling/context.md",
+    "summary": "System should better handle dependency on HEARTBEAT.md and avoid repeated error messages if no tasks need attention."
+  },
+  {
+    "kind": "reliability_perf",
+    "dir": "docs/research-briefs/demo-top/reliability_perf",
+    "ticket": "docs/research-briefs/demo-top/reliability_perf/ticket.json",
+    "context": "docs/research-briefs/demo-top/reliability_perf/context.md",
+    "summary": "User repeatedly hits ChatGPT usage limit (pro plan) causing errors and no assistant response."
+  },
+  {
+    "kind": "user_delight",
+    "dir": "docs/research-briefs/demo-top/user_delight",
+    "ticket": "docs/research-briefs/demo-top/user_delight/ticket.json",
+    "context": "docs/research-briefs/demo-top/user_delight/context.md",
+    "summary": "User appreciates the hybrid draft combining Oracle's structure with incident references preserved."
+  },
+  {
+    "kind": "ux_friction",
+    "dir": "docs/research-briefs/demo-top/ux_friction",
+    "ticket": "docs/research-briefs/demo-top/ux_friction/ticket.json",
+    "context": "docs/research-briefs/demo-top/ux_friction/context.md",
+    "summary": "Repeated 502 errors and missing session keys block progress on task context retrieval"
+  }
+]

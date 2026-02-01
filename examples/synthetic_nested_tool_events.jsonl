@@ -1,3 +1,0 @@
-{"type":"message","id":"1","timestamp":"2026-01-30T00:00:00Z","message":{"role":"toolResult","toolCallId":"tc_1","toolName":"read","content":[{"type":"text","text":"{\"status\":\"error\",\"error\":\"ENOENT\"}"}],"details":{"status":"error","tool":"read","error":"ENOENT: missing file"}}}
-{"type":"message","id":"2","timestamp":"2026-01-30T00:00:01Z","message":{"role":"toolResult","toolCallId":"tc_2","toolName":"bash","content":[{"type":"text","text":"some stderr"}],"details":{"status":"completed","exitCode":2,"stderr":"boom"}}}
-{"type":"message","id":"3","timestamp":"2026-01-30T00:00:02Z","message":{"role":"assistant","content":[{"type":"text","text":"Traceback (most recent call last): ..."}]}}

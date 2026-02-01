@@ -1,0 +1,8 @@
+- Gap: No concrete error text or log excerpt; fix by attaching the exact repeated error lines + timestamps and the component/handler name.  
+- Gap: “1 session” claim unvalidated; fix by adding query criteria + raw counts (time window, filters) and linking the rollup query output.  
+- Weak evidence: Spec excerpt only; fix by citing the specific code path (file + function) that implements HEARTBEAT.md handling.  
+- RCA missing: No hypothesized failure mode; fix by stating at least 1 testable hypothesis (e.g., missing file treated as error instead of HEARTBEAT_OK).  
+- Validation tests missing: Add deterministic tests—(1) file missing, (2) empty file, (3) file with no actionable tasks—assert response is HEARTBEAT_OK and no repeated error logs.  
+- Validation tests missing: Add logging assertions—single warning max, rate‑limited or suppressed after first occurrence; include regression test for “no tasks” flow.  
+- Ownership gap: DRI unknown; fix by assigning owner and target date to investigation tasks.  
+- Option B weak: “defer” lacks stop condition; fix by defining measurable threshold for deferral (e.g., <N incidents in 30 days).
