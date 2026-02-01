@@ -1,0 +1,110 @@
+{
+  "experiment": "t154_cron_timeout",
+  "phase": "baseline",
+  "timestamp": "2026-02-01T21:11:09.389756",
+  "stats": {
+    "label": "baseline",
+    "n_calls": 10,
+    "n_success": 10,
+    "n_failures": 0,
+    "p50_ms": 3327.549934387207,
+    "p95_ms": 3481.2910556793213,
+    "p99_ms": 3481.2910556793213,
+    "max_ms": 3481.2910556793213,
+    "min_ms": 3151.2298583984375,
+    "mean_ms": 3308.3685874938965,
+    "timeouts": 0
+  },
+  "results": [
+    {
+      "call_id": 0,
+      "start_ts": 1769980231.3004436,
+      "end_ts": 1769980234.7361653,
+      "latency_ms": 3435.426712036133,
+      "success": true,
+      "error": null,
+      "jobs_count": 15
+    },
+    {
+      "call_id": 1,
+      "start_ts": 1769980235.2365236,
+      "end_ts": 1769980238.4804964,
+      "latency_ms": 3243.8018321990967,
+      "success": true,
+      "error": null,
+      "jobs_count": 15
+    },
+    {
+      "call_id": 2,
+      "start_ts": 1769980238.9807413,
+      "end_ts": 1769980242.2268603,
+      "latency_ms": 3245.9139823913574,
+      "success": true,
+      "error": null,
+      "jobs_count": 15
+    },
+    {
+      "call_id": 3,
+      "start_ts": 1769980242.7271008,
+      "end_ts": 1769980246.0749433,
+      "latency_ms": 3347.630023956299,
+      "success": true,
+      "error": null,
+      "jobs_count": 15
+    },
+    {
+      "call_id": 4,
+      "start_ts": 1769980246.5751812,
+      "end_ts": 1769980249.9029257,
+      "latency_ms": 3327.549934387207,
+      "success": true,
+      "error": null,
+      "jobs_count": 15
+    },
+    {
+      "call_id": 5,
+      "start_ts": 1769980250.4033659,
+      "end_ts": 1769980253.6495004,
+      "latency_ms": 3245.931386947632,
+      "success": true,
+      "error": null,
+      "jobs_count": 15
+    },
+    {
+      "call_id": 6,
+      "start_ts": 1769980254.1497414,
+      "end_ts": 1769980257.3011954,
+      "latency_ms": 3151.2298583984375,
+      "success": true,
+      "error": null,
+      "jobs_count": 15
+    },
+    {
+      "call_id": 7,
+      "start_ts": 1769980257.801462,
+      "end_ts": 1769980261.2830186,
+      "latency_ms": 3481.2910556793213,
+      "success": true,
+      "error": null,
+      "jobs_count": 15
+    },
+    {
+      "call_id": 8,
+      "start_ts": 1769980261.7832983,
+      "end_ts": 1769980265.1875973,
+      "latency_ms": 3404.0775299072266,
+      "success": true,
+      "error": null,
+      "jobs_count": 15
+    },
+    {
+      "call_id": 9,
+      "start_ts": 1769980265.6878092,
+      "end_ts": 1769980268.8888888,
+      "latency_ms": 3200.833559036255,
+      "success": true,
+      "error": null,
+      "jobs_count": 15
+    }
+  ]
+}
