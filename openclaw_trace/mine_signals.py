@@ -354,10 +354,10 @@ def _should_extend_boundary(prev: EventView, nxt: EventView) -> bool:
 
 
 def _chunk_event_views(views: list[EventView], cfg: MineSignalsConfig) -> list[dict[str, Any]]:
-    if not views:
+    if not views or cfg.chunk_events <= 0:
         return []
 
-    overlap = min(cfg.chunk_overlap, max(0, cfg.chunk_events - 1))
+    overlap = max(0, min(cfg.chunk_overlap, cfg.chunk_events - 1))
     step = max(1, cfg.chunk_events - overlap)
 
     chunks: list[dict[str, Any]] = []
