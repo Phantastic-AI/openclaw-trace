@@ -15,6 +15,7 @@ build/
 # Outputs / artifacts
 out_*.json
 out_*.md
+out_*.jsonl
 
 # OS
 .DS_Store
