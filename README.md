@@ -130,11 +130,6 @@ python scripts/run_research_brief.py \
 - `rollup-signals` redacts summaries and avoids verbatim evidence quotes.
 - If you need hard guarantees, add a dedicated redaction step.
 
-## Other modes (legacy)
-
-- `openclaw-trace analyze ...` for custom trace analysis programs.
-- `openclaw-trace mine-ideas ...` for frontier experiment idea mining.
-
 ## Notes / limitations
 
 - The safe-exec sandbox is a best-effort guardrail, not a security boundary.
