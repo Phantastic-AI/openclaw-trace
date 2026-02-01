@@ -8,14 +8,15 @@ Core idea: mine grounded signals from real agent work, roll them up into cluster
 
 ## Vision (grounded, but ambitious)
 
-This repo is a **prototype** of a recursive improvement loop. The vision is a **networked self‑improvement platform** where many agents share **PII‑scrubbed rollups**, research briefs, and verified fixes:
+This repo is a **prototype** of a recursive improvement loop: turn real OpenClaw / Clawdbot traces into **grounded signals**, cluster them into **repeatable problems**, route them into **tickets and research briefs**, and ship **verified fixes**—then measure the deltas and repeat. The long-term vision is a **networked self-improvement platform** where many agents and teams share **PII-scrubbed rollups**, evaluation results, and fixes as a common, continuously-updated substrate:
 
-- **Brokering problems and solutions:** signals → rollups → tickets → research → experiments → fixes, at scale.
-- **A marketplace of improvements:** contributors propose solutions; experiments validate; fixes propagate.
-- **Leaderboard + economy:** reward improvements that measurably reduce failures or increase delight.
-- **Human‑visible evidence:** every claim traces back to concrete sessions and metrics.
+- **Brokering problems and solutions:** signals → rollups → tickets → research → experiments → fixes, with provenance and measurable outcomes.
+- **Shared “notes” for agents:** validated patterns, mitigations, and playbooks that propagate across deployments—not just within one agent.
+- **A marketplace of improvements:** contributors propose changes; experiments and metrics arbitrate; the best fixes spread.
+- **Incentives + reputation:** reward improvements that reduce failure rates, increase task success, or improve user experience—backed by evidence.
+- **Human-visible evidence:** every claim links back to concrete sessions, diffs, and before/after metrics.
 
-Could this approach create AGI? This alone is not AGI. It is a **scalable substrate** for compounding improvements across many agentic systems. If the loop becomes fast, reliable, and widely shared, it could drive accelerating capability growth. The hard parts remain: safety, governance, and rigorous evaluation.
+Could this plausibly contribute to **AGI**? Not by itself. But it *could* be a credible path toward **compounding capability growth**: if many agents can **self-improve** from real work, **share their notes** (sanitized rollups, briefs, and fixes), and converge on improvements through **rigorous evaluation**, the system starts to resemble a distributed R&D engine—one that can accumulate general skills, reduce brittleness, and accelerate iteration across tasks and domains. Whether that reaches AGI depends on hard prerequisites (scaling, generalization, safety, governance, and trustworthy eval), but the core bet here is simple: **tight feedback loops + shared, evidence-backed learning at scale** could move the frontier faster than isolated fine-tuning or one-off prompt tweaks.
 
 ## Pipeline (end-to-end)
 
