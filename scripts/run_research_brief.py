@@ -172,6 +172,8 @@ def _build_prompt(
         "Some issues are objective bugs/patches, some are subjective opportunities to delight, "
         "and some have multiple valid answers that require research/experiments. "
         "Follow the template exactly. Output markdown only. Keep it concise. "
+        "Do not include any preamble, analysis, or meta commentary. "
+        "Start with the template's first heading and nothing else. "
         "If information is missing, write 'Unknown' and add a validation test."
     )
     if strict_grounding:
