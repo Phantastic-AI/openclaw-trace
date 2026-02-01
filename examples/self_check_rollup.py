@@ -21,6 +21,7 @@ def main() -> None:
     top = rollups[0]
     assert top["count_items"] == 2, "expected duplicate group count 2"
     assert top["tier"] == 1, "expected tier 1 for incident/high severity"
+    assert top.get("fingerprint_id", "").startswith("fp1:"), "expected fingerprint_id"
 
     print("OK")
 

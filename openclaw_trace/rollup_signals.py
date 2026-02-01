@@ -105,6 +105,14 @@ def signature_v1(item: Json) -> tuple[str, str]:
     return sig_text, f"sig1:{_hash(sig_text)}"
 
 
+def fingerprint_v1(kind_v2: str, canonical_summary: str, tags_top: list[tuple[str, int]]) -> tuple[str, str]:
+    tokens = _tokens(canonical_summary)
+    gram_core = " ".join(_bigrams(tokens)[:6])
+    tag_core = ",".join(t[:32].lower() for t, _n in tags_top[:5])
+    fp_text = f"{kind_v2}|{gram_core}|{tag_core}"
+    return fp_text, f"fp1:{_hash(fp_text)}"
+
+
 def _severity_rank(sev: str) -> int:
     return SEVERITY_ORDER.get((sev or "unknown").lower(), 0)
 
@@ -228,6 +236,9 @@ def rollup_signals(*, items: list[Json], cfg: RollupConfig) -> tuple[Json, list[
 
         tier, tier_reasons = _tier_for_group(max_sev, tag_counts, kind_counts)
         score = _score_group(count_items=count_items, max_sev=max_sev, tag_counts=tag_counts, kind_counts=kind_counts)
+        tags_top = tag_counts.most_common(cfg.max_tags)
+        kind_v2_primary = kind_v2_counts.most_common(1)[0][0] if kind_v2_counts else "ux_friction"
+        fp_text, fp_id = fingerprint_v1(kind_v2_primary, canonical_summary, tags_top)
 
         samples: list[Json] = []
         for g in group[: cfg.max_samples]:
@@ -252,8 +263,10 @@ def rollup_signals(*, items: list[Json], cfg: RollupConfig) -> tuple[Json, list[
                 "tier": tier,
                 "tier_reasons": tier_reasons,
                 "score": score,
-                "tags_top": tag_counts.most_common(cfg.max_tags),
+                "tags_top": tags_top,
                 "canonical_summary": canonical_summary,
+                "fingerprint_id": fp_id,
+                "fingerprint_text": _redact(fp_text),
                 "sample_refs": samples,
                 "sentiment": Counter(_sentiment(g) for g in group).most_common(1)[0][0] if group else "neutral",
                 "kind_v2_reason_top": kind_v2_reasons.most_common(2),

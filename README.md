@@ -84,7 +84,7 @@ openclaw-trace mine-signals \
 
 ## Roll up mined signals (clusters + ranking)
 
-This stage groups similar signals and outputs a ranked rollup. Rollups avoid verbatim evidence quotes to reduce PII amplification and emit a lightweight `kind_v2` mapping for routing.
+This stage groups similar signals and outputs a ranked rollup. Rollups avoid verbatim evidence quotes to reduce PII amplification and emit a lightweight `kind_v2` mapping plus `fingerprint_id` for ticketing.
 
 ```bash
 openclaw-trace rollup-signals \
