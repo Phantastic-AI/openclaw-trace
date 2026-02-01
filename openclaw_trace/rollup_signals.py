@@ -200,7 +200,173 @@ class RollupConfig:
     max_tags: int = 8
 
 
-def rollup_signals(*, items: list[Json], cfg: RollupConfig) -> tuple[Json, list[Json]]:
+@dataclass
+class MergeConfig:
+    enabled: bool = False
+    auto_jaccard: float = 0.62
+    llm_jaccard: float = 0.5
+    max_pairs_per_block: int = 5000
+    use_llm: bool = False
+
+
+def _jaccard(a: set[str], b: set[str]) -> float:
+    if not a or not b:
+        return 0.0
+    inter = len(a & b)
+    union = len(a | b)
+    if union == 0:
+        return 0.0
+    return inter / union
+
+
+def _safe_json(text: str) -> Json | None:
+    m = re.search(r"\{.*\}", text, re.S)
+    if not m:
+        return None
+    try:
+        obj = json.loads(m.group(0))
+    except Exception:
+        return None
+    return obj if isinstance(obj, dict) else None
+
+
+def _llm_merge_decision(llm: Any, a: Json, b: Json) -> bool:
+    system = (
+        "Decide if two issue summaries describe the same underlying issue. "
+        "Return ONLY JSON: {\"decision\":\"merge|separate\",\"confidence\":0.0}. "
+        "Be conservative: merge only if clearly the same."
+    )
+    payload = {
+        "a": {
+            "summary": a.get("canonical_summary"),
+            "kind_v2": a.get("kind_v2_counts"),
+            "tags_top": a.get("tags_top"),
+        },
+        "b": {
+            "summary": b.get("canonical_summary"),
+            "kind_v2": b.get("kind_v2_counts"),
+            "tags_top": b.get("tags_top"),
+        },
+    }
+    resp = llm.complete(system=system, user=json.dumps(payload, ensure_ascii=False), temperature=0.0)
+    obj = _safe_json(resp.text) or {}
+    decision = (obj.get("decision") or "").lower()
+    conf = obj.get("confidence")
+    if decision == "merge" and isinstance(conf, (int, float)) and conf >= 0.7:
+        return True
+    return False
+
+
+def _merge_rollups(rollups: list[Json], cfg: MergeConfig, llm: Any | None) -> list[Json]:
+    if not rollups:
+        return rollups
+
+    # Block by primary kind_v2 for now (cheap; avoids O(n^2) across everything).
+    blocks: dict[str, list[int]] = defaultdict(list)
+    for idx, r in enumerate(rollups):
+        kind_v2_primary = max(r.get("kind_v2_counts", {"ux_friction": 1}), key=r.get("kind_v2_counts", {"ux_friction": 1}).get)
+        blocks[kind_v2_primary].append(idx)
+
+    # Union-find for merges
+    parent = list(range(len(rollups)))
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    for kind_v2, idxs in blocks.items():
+        if len(idxs) < 2:
+            continue
+        pairs = 0
+        for i, idx in enumerate(idxs):
+            a = rollups[idx]
+            tokens_a = set(_tokens(a.get("canonical_summary", "")))
+            for j in range(i + 1, len(idxs)):
+                pairs += 1
+                if pairs > cfg.max_pairs_per_block:
+                    break
+                b = rollups[idxs[j]]
+                tokens_b = set(_tokens(b.get("canonical_summary", "")))
+                sim = _jaccard(tokens_a, tokens_b)
+                if sim >= cfg.auto_jaccard:
+                    union(idx, idxs[j])
+                elif cfg.use_llm and llm is not None and sim >= cfg.llm_jaccard:
+                    if _llm_merge_decision(llm, a, b):
+                        union(idx, idxs[j])
+            if pairs > cfg.max_pairs_per_block:
+                break
+
+    # Build merged groups
+    groups: dict[int, list[Json]] = defaultdict(list)
+    for idx, r in enumerate(rollups):
+        groups[find(idx)].append(r)
+
+    merged: list[Json] = []
+    for members in groups.values():
+        if len(members) == 1:
+            merged.append(members[0])
+            continue
+
+        count_items = sum(m.get("count_items", 0) for m in members)
+        count_sessions = sum(m.get("count_sessions", 0) for m in members)
+        kind_counts = Counter()
+        kind_v2_counts = Counter()
+        tag_counts = Counter()
+        max_sev = "unknown"
+        max_sev_rank = -1
+        sentiment_counts = Counter()
+        merged_from = []
+
+        for m in members:
+            merged_from.append(m.get("signature_id"))
+            kind_counts.update(m.get("kind_counts") or {})
+            kind_v2_counts.update(m.get("kind_v2_counts") or {})
+            tag_counts.update({k: v for k, v in (m.get("tags_top") or [])})
+            sev = m.get("max_severity") or "unknown"
+            rank = _severity_rank(sev)
+            if rank > max_sev_rank:
+                max_sev_rank = rank
+                max_sev = sev
+            sentiment_counts.update([m.get("sentiment") or "neutral"])
+
+        canonical = max(members, key=lambda m: m.get("count_items", 0))
+        tier, tier_reasons = _tier_for_group(max_sev, tag_counts, kind_counts)
+        score = _score_group(count_items=count_items, max_sev=max_sev, tag_counts=tag_counts, kind_counts=kind_counts)
+        tags_top = tag_counts.most_common(8)
+        kind_v2_primary = kind_v2_counts.most_common(1)[0][0] if kind_v2_counts else "ux_friction"
+        fp_text, fp_id = fingerprint_v1(kind_v2_primary, canonical.get("canonical_summary", ""), tags_top)
+
+        merged.append(
+            {
+                **canonical,
+                "count_items": count_items,
+                "count_sessions": count_sessions,
+                "kind_counts": dict(kind_counts),
+                "kind_v2_counts": dict(kind_v2_counts),
+                "max_severity": max_sev,
+                "tier": tier,
+                "tier_reasons": tier_reasons,
+                "score": score,
+                "tags_top": tags_top,
+                "fingerprint_id": fp_id,
+                "fingerprint_text": _redact(fp_text),
+                "sentiment": sentiment_counts.most_common(1)[0][0] if sentiment_counts else "neutral",
+                "merged_from": merged_from,
+            }
+        )
+
+    merged.sort(key=lambda r: (r.get("tier", 9), -float(r.get("score", 0))))
+    return merged
+
+
+def rollup_signals(*, items: list[Json], cfg: RollupConfig, merge_cfg: MergeConfig | None = None, llm: Any | None = None) -> tuple[Json, list[Json]]:
     grouped: dict[str, list[Json]] = defaultdict(list)
     sig_texts: dict[str, str] = {}
     for item in items:
@@ -274,6 +440,9 @@ def rollup_signals(*, items: list[Json], cfg: RollupConfig) -> tuple[Json, list[
         )
 
     rollups.sort(key=lambda r: (r.get("tier", 9), -float(r.get("score", 0))))
+
+    if merge_cfg and merge_cfg.enabled:
+        rollups = _merge_rollups(rollups, merge_cfg, llm)
 
     summary = {
         "counts": {

@@ -93,6 +93,17 @@ openclaw-trace rollup-signals \
   --out-md rollup.md
 ```
 
+Optional merge pass (tier‑2 lexical + tier‑3 LLM confirm):
+
+```bash
+openclaw-trace rollup-signals \
+  --in-jsonl out_signals.jsonl \
+  --out-json rollup.json \
+  --out-md rollup.md \
+  --merge-similar \
+  --merge-llm --llm openai
+```
+
 ## Ticketing from rollups (create/update Phorge tasks)
 
 This script scans recent tasks for `fingerprint_id` and creates/updates tickets based on rollups.

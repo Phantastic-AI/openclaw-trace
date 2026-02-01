@@ -225,7 +225,7 @@ def _cmd_mine_signals(argv: list[str]) -> None:
 
 
 def _cmd_rollup_signals(argv: list[str]) -> None:
-    from .rollup_signals import RollupConfig, load_items, rollup_signals
+    from .rollup_signals import MergeConfig, RollupConfig, load_items, rollup_signals
 
     ap = argparse.ArgumentParser(
         prog="openclaw-trace rollup-signals",
@@ -236,11 +236,26 @@ def _cmd_rollup_signals(argv: list[str]) -> None:
     ap.add_argument("--out-md", default="rollup.md", help="Output rollup Markdown path")
     ap.add_argument("--max-samples", type=int, default=3)
     ap.add_argument("--max-tags", type=int, default=8)
+    ap.add_argument("--merge-similar", action="store_true", help="Merge similar rollups")
+    ap.add_argument("--merge-auto-jaccard", type=float, default=0.62)
+    ap.add_argument("--merge-llm-jaccard", type=float, default=0.5)
+    ap.add_argument("--merge-llm", action="store_true", help="Use LLM to confirm borderline merges")
+    ap.add_argument("--llm", choices=["openai", "none"], default="none")
 
     args = ap.parse_args(argv)
 
     items = load_items(Path(args.in_jsonl))
-    summary, rollups = rollup_signals(items=items, cfg=RollupConfig(max_samples=args.max_samples, max_tags=args.max_tags))
+    llm = None
+    if args.merge_llm and args.llm != "none":
+        llm = _build_llm(args.llm)
+
+    merge_cfg = MergeConfig(
+        enabled=args.merge_similar,
+        auto_jaccard=args.merge_auto_jaccard,
+        llm_jaccard=args.merge_llm_jaccard,
+        use_llm=args.merge_llm,
+    )
+    summary, rollups = rollup_signals(items=items, cfg=RollupConfig(max_samples=args.max_samples, max_tags=args.max_tags), merge_cfg=merge_cfg, llm=llm)
 
     out = {
         "summary": summary,
