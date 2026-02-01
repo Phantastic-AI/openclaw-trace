@@ -142,16 +142,100 @@ def _cmd_mine_ideas(argv: list[str]) -> None:
     Path(args.out_md).write_text(render_markdown(report), encoding="utf-8")
 
 
+def _cmd_mine_signals(argv: list[str]) -> None:
+    from .mine_signals import MineSignalsConfig, mine_signals
+
+    ap = argparse.ArgumentParser(
+        prog="openclaw-trace mine-signals",
+        description="Crawl many session jsonl files and mine self-improvement signals.",
+    )
+    ap.add_argument(
+        "--sessions-dir",
+        default="/home/debian/.clawdbot/agents/main/sessions",
+        help="Directory containing session .jsonl files",
+    )
+    ap.add_argument(
+        "--include",
+        action="append",
+        default=["*.jsonl", "**/*.jsonl"],
+        help="Glob(s) relative to sessions-dir to include (repeatable)",
+    )
+    ap.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        help="Glob(s) relative to sessions-dir to exclude (repeatable)",
+    )
+    ap.add_argument("--max-sessions", type=int, default=None)
+    ap.add_argument("--chunk-events", type=int, default=20)
+    ap.add_argument("--chunk-overlap", type=int, default=4)
+    ap.add_argument("--max-text-chars", type=int, default=800)
+    ap.add_argument("--max-items-per-chunk", type=int, default=10)
+    ap.add_argument("--max-evidence-per-item", type=int, default=2)
+    ap.add_argument("--max-summary-chars", type=int, default=120)
+    ap.add_argument("--max-quote-chars", type=int, default=200)
+    ap.add_argument("--llm", choices=["openai", "none"], default="openai")
+    ap.add_argument("--temperature", type=float, default=0.0)
+    ap.add_argument(
+        "--out-jsonl",
+        type=str,
+        default="out_signals.jsonl",
+        help="Output JSONL path",
+    )
+    ap.add_argument(
+        "--out-json",
+        type=str,
+        default="out_signals.json",
+        help="Output summary JSON path",
+    )
+
+    args = ap.parse_args(argv)
+
+    llm = NoLLMClient() if args.llm == "none" else _build_llm(args.llm)
+
+    cfg = MineSignalsConfig(
+        sessions_dir=Path(args.sessions_dir),
+        include=args.include or [],
+        exclude=args.exclude or [],
+        max_sessions=args.max_sessions,
+        chunk_events=args.chunk_events,
+        chunk_overlap=args.chunk_overlap,
+        max_text_chars=args.max_text_chars,
+        max_items_per_chunk=args.max_items_per_chunk,
+        max_evidence_per_item=args.max_evidence_per_item,
+        max_summary_chars=args.max_summary_chars,
+        max_quote_chars=args.max_quote_chars,
+        use_llm=args.llm != "none",
+        temperature=args.temperature,
+    )
+
+    summary, items = mine_signals(llm=llm, cfg=cfg)
+
+    # Always print a tiny sanity line so it's obvious what we scanned.
+    print(
+        f"[openclaw-trace] mine-signals: sessionsDir={cfg.sessions_dir} items={summary['counts']['items']}",
+        file=sys.stderr,
+    )
+
+    Path(args.out_jsonl).write_text(
+        "\n".join(json.dumps(item, ensure_ascii=False) for item in items) + ("\n" if items else ""),
+        encoding="utf-8",
+    )
+    Path(args.out_json).write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
 def main() -> None:
     # Single, explicit CLI surface (no legacy aliases or implicit dispatch).
     # Use:
     # - `openclaw-trace analyze ...`
     # - `openclaw-trace mine-ideas ...`
+    # - `openclaw-trace mine-signals ...`
     ap = argparse.ArgumentParser(prog="openclaw-trace")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("analyze", help="Analyze a single transcript")
     sub.add_parser("mine-ideas", help="Mine frontier experiment ideas from many traces")
+    sub.add_parser("mine-signals", help="Mine self-improvement signals from many traces")
 
     ns, _rest = ap.parse_known_args(sys.argv[1:2])
 
@@ -159,6 +243,8 @@ def main() -> None:
         _cmd_analyze(sys.argv[2:])
     elif ns.cmd == "mine-ideas":
         _cmd_mine_ideas(sys.argv[2:])
+    elif ns.cmd == "mine-signals":
+        _cmd_mine_signals(sys.argv[2:])
     else:
         ap.print_help()
         raise SystemExit(2)
