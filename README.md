@@ -82,6 +82,25 @@ openclaw-trace mine-signals \
   --out-json out_signals.json
 ```
 
+## Research briefs (template + headless runner)
+
+Template:
+
+```
+docs/research-briefs/BRIEF_TEMPLATE.md
+```
+
+Headless runner (Claude Code + optional Codex critic):
+
+```bash
+python scripts/run_research_brief.py \
+  --ticket-id 145 \
+  --context /home/debian/clawd/home/tmp/out_signals_latest120.json \
+  --critic
+```
+
+Use `--dry-run` to print the assembled prompt without calling Claude.
+
 ## Run (no API key)
 
 If `OPENAI_API_KEY` is missing, the tool falls back to a deterministic stub.
