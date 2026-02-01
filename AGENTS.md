@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Instructions for AI coding agents (Codex, Claude Code, etc.) working on **openclaw-trace**.
+Instructions for AI coding agents (Codex, Claude Code, etc.) working on **openclaw-agi**.
 
 ---
 

@@ -156,6 +156,12 @@ def _classify_kind_v2(item: Json) -> tuple[str, str]:
     def has(*terms: str) -> bool:
         return any(t in summary for t in terms)
 
+    if kind == "proactive_opportunity":
+        return "proactive_opportunity", "kind:proactive_opportunity"
+
+    if kind == "user_delight":
+        return "user_delight", "kind:user_delight"
+
     if kind == "error":
         if has("timeout", "timed out", "rate limit", "usage limit", "quota", "latency", "slow", "flaky", "unavailable", "connection refused"):
             return "reliability_perf", "error:reliability_perf"

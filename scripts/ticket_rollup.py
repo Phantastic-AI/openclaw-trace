@@ -78,6 +78,12 @@ def _format_rollup_block(r: Json) -> str:
     )
 
 
+def _format_item(item: Json) -> str:
+    if item.get("schema_version") == 1 and "body" in item:
+        return str(item.get("body") or "")
+    return _format_rollup_block(item)
+
+
 def _should_create(r: Json, min_tier: int, min_sessions: int, min_items: int) -> bool:
     tier = int(r.get("tier") or 9)
     if tier > min_tier:
@@ -92,9 +98,9 @@ def _should_create(r: Json, min_tier: int, min_sessions: int, min_items: int) ->
 
 
 def _create_task(r: Json) -> str:
-    title = f"Signal: {r.get('canonical_summary')}"
-    description = _format_rollup_block(r)
-    payload = {"title": title, "description": description, "priority": 80}
+    title = r.get("title") or f"Signal: {r.get('canonical_summary')}"
+    description = _format_item(r)
+    payload = {"title": title, "description": description, "priority": r.get("priority", 80)}
     data = _conduit_call("maniphest.createtask", payload)
     return data.get("result", {}).get("uri") or ""
 
@@ -106,7 +112,8 @@ def _comment_task(task_id: int, comment: str) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Create/update Phorge tickets from rollup outputs.")
-    ap.add_argument("--in-json", required=True, help="Rollup JSON path")
+    ap.add_argument("--in-json", help="Rollup JSON path")
+    ap.add_argument("--in-jsonl", help="Ticket IR JSONL path")
     ap.add_argument("--scan-limit", type=int, default=300, help="How many recent tasks to scan for fingerprints")
     ap.add_argument("--min-tier", type=int, default=1, help="Only consider tiers <= this value")
     ap.add_argument("--min-sessions", type=int, default=3)
@@ -115,8 +122,18 @@ def main() -> None:
     ap.add_argument("--dry-run", action="store_true", help="Print actions only (no Phorge edits)")
     args = ap.parse_args()
 
-    rollup = json.loads(Path(args.in_json).read_text())
-    rollups = rollup.get("rollups", [])
+    if not args.in_json and not args.in_jsonl:
+        raise SystemExit("Provide --in-json (rollup) or --in-jsonl (ticket IR)")
+
+    if args.in_jsonl:
+        rollups = [
+            json.loads(line)
+            for line in Path(args.in_jsonl).read_text().splitlines()
+            if line.strip()
+        ]
+    else:
+        rollup = json.loads(Path(args.in_json).read_text())
+        rollups = rollup.get("rollups", [])
 
     existing = _scan_existing_fingerprints(args.scan_limit)
     created = 0
@@ -132,7 +149,7 @@ def main() -> None:
             if args.dry_run:
                 print(f"[update] {task['url']} fp={fp}")
                 continue
-            _comment_task(task["id"], "Rollup update:\n\n" + _format_rollup_block(r))
+            _comment_task(task["id"], "Rollup update:\n\n" + _format_item(r))
             continue
 
         if created >= args.max_create:

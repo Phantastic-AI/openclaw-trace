@@ -19,6 +19,8 @@ ALLOWED_KINDS = {
     "user_frustration",
     "improvement_suggestion",
     "experiment_suggestion",
+    "proactive_opportunity",
+    "user_delight",
     "other",
 }
 
@@ -403,7 +405,8 @@ def _llm_prompt(chunk: dict[str, Any], cfg: MineSignalsConfig) -> tuple[str, str
     system = (
         "You are a trace-mining classifier. Extract self-improvement signals from events. "
         "Return ONLY strict JSON: {\"items\": [...]} with no extra text. "
-        "Kinds: error, user_frustration, improvement_suggestion, experiment_suggestion, other. "
+        "Kinds: error, user_frustration, improvement_suggestion, experiment_suggestion, proactive_opportunity, user_delight, other. "
+        "proactive_opportunity = new proactive action the system should do; user_delight = opportunity to wow/delight. "
         "If user mentions an incident report, add tag 'incident'. "
         "Evidence quotes must be exact substrings of events[].text. "
         "Do not include PII; text is already redacted."
@@ -628,6 +631,11 @@ def _heuristic_extract(chunk: dict[str, Any], cfg: MineSignalsConfig) -> list[Js
     frustration_re = re.compile(r"\b(confus(ed|ing)|frustrat(ed|ing)|dont understand|do not understand|wtf|not what i meant)\b", re.I)
     improve_re = re.compile(r"\b(we should|should we|suggest|improve|fix|add|change|avoid)\b", re.I)
     experiment_re = re.compile(r"\b(experiment|ablation|benchmark|eval|evaluation|hypothesis)\b", re.I)
+    opportunity_re = re.compile(
+        r"\b(reach out|outreach|share|publish|demo|hackathon|community|partner(ship)?|collab(orate)?|announce|publicize)\b",
+        re.I,
+    )
+    delight_re = re.compile(r"\b(delight|wow|surprise|magical|polish|lovely|make it feel)\b", re.I)
 
     for view in views:
         text = view.text
@@ -683,6 +691,46 @@ def _heuristic_extract(chunk: dict[str, Any], cfg: MineSignalsConfig) -> list[Js
                     "severity": "low",
                     "confidence": 0.3,
                     "tags": ["experiment"],
+                    "evidence": [
+                        {
+                            "event_i": view.i,
+                            "role": view.role,
+                            "field_path": "text",
+                            "quote": _truncate(text, cfg.max_quote_chars)[0],
+                        }
+                    ],
+                }
+            )
+            continue
+
+        if opportunity_re.search(text):
+            items.append(
+                {
+                    "kind": "proactive_opportunity",
+                    "summary": _truncate(text.splitlines()[0], cfg.max_summary_chars)[0],
+                    "severity": "low",
+                    "confidence": 0.3,
+                    "tags": ["opportunity"],
+                    "evidence": [
+                        {
+                            "event_i": view.i,
+                            "role": view.role,
+                            "field_path": "text",
+                            "quote": _truncate(text, cfg.max_quote_chars)[0],
+                        }
+                    ],
+                }
+            )
+            continue
+
+        if delight_re.search(text):
+            items.append(
+                {
+                    "kind": "user_delight",
+                    "summary": _truncate(text.splitlines()[0], cfg.max_summary_chars)[0],
+                    "severity": "low",
+                    "confidence": 0.3,
+                    "tags": ["delight"],
                     "evidence": [
                         {
                             "event_i": view.i,

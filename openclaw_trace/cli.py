@@ -12,11 +12,7 @@ from .transcript import load_transcript
 
 def _build_llm(kind: str) -> object:
     if kind == "openai":
-        try:
-            return OpenAICompatClient()
-        except Exception:
-            # If API env is missing/misconfigured, fall back to a deterministic stub.
-            return NoLLMClient()
+        return OpenAICompatClient()
     return NoLLMClient()
 
 
