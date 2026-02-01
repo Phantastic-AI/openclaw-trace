@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Triage - openclaw-trace</title>
+    <script src="https://unpkg.com/@daily-co/daily-js"></script>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --border: #2a2a2a;
+            --text: #e0e0e0;
+            --text-dim: #888;
+            --accent: #ff4444;
+            --accent-glow: rgba(255, 68, 68, 0.3);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        h1 .hal {
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--accent-glow);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .subtitle {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            color: var(--accent);
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+        
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-family: inherit;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+        
+        button:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        #call-container {
+            width: 100%;
+            height: 200px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        #call-container.active {
+            display: flex;
+        }
+        
+        .status {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+        
+        .status.connecting {
+            background: rgba(255, 200, 0, 0.1);
+            border: 1px solid rgba(255, 200, 0, 0.3);
+            color: #ffc800;
+        }
+        
+        .status.connected {
+            background: rgba(0, 255, 100, 0.1);
+            border: 1px solid rgba(0, 255, 100, 0.3);
+            color: #00ff64;
+        }
+        
+        .status.error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: var(--accent);
+        }
+        
+        .commands {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .commands h3 {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            margin-bottom: 0.75rem;
+        }
+        
+        .command-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .command {
+            font-size: 0.8rem;
+            padding: 0.5rem;
+            background: var(--bg);
+            border-radius: 4px;
+        }
+        
+        .command code {
+            color: var(--accent);
+        }
+        
+        #transcript {
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        #transcript.active {
+            display: block;
+        }
+        
+        #transcript p {
+            margin-bottom: 0.25rem;
+        }
+        
+        #transcript .bot {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="hal"></span> Voice Triage</h1>
+        <p class="subtitle">openclaw-trace signal review</p>
+        
+        <div class="card">
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">{{ cluster_count }}</div>
+                    <div class="stat-label">Signals</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="reviewed">0</div>
+                    <div class="stat-label">Reviewed</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="tickets">0</div>
+                    <div class="stat-label">Tickets</div>
+                </div>
+            </div>
+            
+            <button id="start-btn" onclick="startSession()">Start Voice Triage</button>
+            <button id="end-btn" onclick="endSession()" style="display: none; background: var(--border);">End Session</button>
+            
+            <div id="status"></div>
+            <div id="call-container"></div>
+            <div id="transcript"></div>
+            
+            <div class="commands">
+                <h3>Voice Commands</h3>
+                <div class="command-list">
+                    <div class="command"><code>"next"</code> skip signal</div>
+                    <div class="command"><code>"ticket"</code> create ticket</div>
+                    <div class="command"><code>"details"</code> more info</div>
+                    <div class="command"><code>"quit"</code> end session</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let callObject = null;
+        
+        function setStatus(text, type) {
+            const el = document.getElementById('status');
+            el.textContent = text;
+            el.className = 'status ' + type;
+        }
+        
+        function addTranscript(text, isBot) {
+            const el = document.getElementById('transcript');
+            el.classList.add('active');
+            const p = document.createElement('p');
+            p.className = isBot ? 'bot' : 'user';
+            p.textContent = (isBot ? '🔴 ' : '👤 ') + text;
+            el.appendChild(p);
+            el.scrollTop = el.scrollHeight;
+        }
+        
+        async function startSession() {
+            const btn = document.getElementById('start-btn');
+            btn.disabled = true;
+            btn.textContent = 'Starting...';
+            setStatus('Creating room...', 'connecting');
+            
+            try {
+                const resp = await fetch('/api/start-session', { method: 'POST' });
+                if (!resp.ok) {
+                    const err = await resp.json();
+                    throw new Error(err.detail || 'Failed to start');
+                }
+                
+                const data = await resp.json();
+                setStatus('Connecting to room...', 'connecting');
+                
+                // Create Daily call
+                callObject = window.DailyIframe.createCallObject({
+                    audioSource: true,
+                    videoSource: false,
+                });
+                
+                callObject.on('joined-meeting', () => {
+                    setStatus('Connected - speak your commands', 'connected');
+                    document.getElementById('call-container').classList.add('active');
+                    document.getElementById('start-btn').style.display = 'none';
+                    document.getElementById('end-btn').style.display = 'block';
+                });
+                
+                callObject.on('left-meeting', () => {
+                    setStatus('Session ended', '');
+                    cleanup();
+                });
+                
+                callObject.on('error', (e) => {
+                    setStatus('Error: ' + e.errorMsg, 'error');
+                    cleanup();
+                });
+                
+                // Join the room
+                await callObject.join({
+                    url: data.room_url,
+                    token: data.token,
+                });
+                
+            } catch (err) {
+                setStatus('Error: ' + err.message, 'error');
+                cleanup();
+            }
+        }
+        
+        function endSession() {
+            if (callObject) {
+                callObject.leave();
+            }
+        }
+        
+        function cleanup() {
+            if (callObject) {
+                callObject.destroy();
+                callObject = null;
+            }
+            document.getElementById('call-container').classList.remove('active');
+            document.getElementById('start-btn').style.display = 'block';
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('start-btn').textContent = 'Start Voice Triage';
+            document.getElementById('end-btn').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
