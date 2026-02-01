@@ -34,6 +34,7 @@ sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.createtask -
 | **Workspace root** | `/home/debian/clawd/` |
 | **Project repos** | `/home/debian/clawd/home/Workspace/` |
 | **Phorge skill** | `/home/debian/clawd/skills/phorge/` |
+| **Socratic tutor skill** | `/home/debian/clawdbot/skills/socratic-tutor/SKILL.md` |
 
 ---
 
