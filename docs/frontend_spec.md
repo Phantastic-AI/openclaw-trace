@@ -26,7 +26,7 @@ Goal: a **readable, explorable dashboard** that shows the self-improvement loop 
 
 ```
 +--------------------------------------------------------------+
-| openclaw-agi  |  last run: 2026-02-01  |  status: healthy    |
+| openclaw-trace  |  last run: 2026-02-01  |  status: healthy    |
 +--------------------------------------------------------------+
 |  Loop Health                                                      |
 |  [Signals mined] [Rollups] [Tickets] [Briefs] [Experiments]   |
