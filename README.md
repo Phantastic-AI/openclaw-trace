@@ -137,8 +137,8 @@ python scripts/run_research_brief.py \
 
 ## API key behavior
 
-- `--llm openai` requires `OPENAI_API_KEY`. If it’s missing, the CLI exits.
-- Use `--llm none` for deterministic, no-API runs.
+- Default is `--llm openai`. If `OPENAI_API_KEY` is missing, the CLI exits (no silent fallback).
+- Use `--llm none` only for dry runs / testing.
 
 ## Daily pipeline script (no cron)
 
