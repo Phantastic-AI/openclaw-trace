@@ -1,0 +1,217 @@
+{
+  "session_count": 39,
+  "ngram_counts": {
+    "2": {
+      "bash \u2192 bash": 204,
+      "exec \u2192 exec": 131,
+      "memory_search \u2192 bash": 23,
+      "read \u2192 bash": 22,
+      "read \u2192 read": 22,
+      "bash \u2192 memory_search": 21,
+      "bash \u2192 read": 14,
+      "read \u2192 exec": 14,
+      "exec \u2192 read": 14,
+      "edit \u2192 exec": 11,
+      "exec \u2192 edit": 8,
+      "exec \u2192 memory_search": 7,
+      "cron \u2192 cron": 7,
+      "memory_search \u2192 exec": 6,
+      "exec \u2192 process": 6,
+      "write \u2192 exec": 5,
+      "process \u2192 process": 4,
+      "process \u2192 exec": 4,
+      "exec \u2192 cron": 3,
+      "cron \u2192 exec": 3
+    },
+    "3": {
+      "bash \u2192 bash \u2192 bash": 143,
+      "exec \u2192 exec \u2192 exec": 95,
+      "bash \u2192 bash \u2192 memory_search": 21,
+      "read \u2192 bash \u2192 bash": 21,
+      "memory_search \u2192 bash \u2192 bash": 19,
+      "bash \u2192 memory_search \u2192 bash": 16,
+      "bash \u2192 bash \u2192 read": 13,
+      "read \u2192 read \u2192 read": 13,
+      "bash \u2192 read \u2192 bash": 11,
+      "read \u2192 exec \u2192 exec": 11,
+      "exec \u2192 read \u2192 exec": 9,
+      "exec \u2192 exec \u2192 read": 8,
+      "exec \u2192 exec \u2192 memory_search": 7,
+      "exec \u2192 exec \u2192 edit": 6,
+      "edit \u2192 exec \u2192 exec": 6,
+      "exec \u2192 memory_search \u2192 exec": 5,
+      "memory_search \u2192 exec \u2192 exec": 5,
+      "write \u2192 exec \u2192 exec": 5,
+      "exec \u2192 edit \u2192 exec": 5,
+      "read \u2192 read \u2192 bash": 4
+    },
+    "4": {
+      "bash \u2192 bash \u2192 bash \u2192 bash": 91,
+      "exec \u2192 exec \u2192 exec \u2192 exec": 68,
+      "bash \u2192 bash \u2192 bash \u2192 memory_search": 20,
+      "read \u2192 bash \u2192 bash \u2192 bash": 20,
+      "bash \u2192 bash \u2192 memory_search \u2192 bash": 16,
+      "bash \u2192 memory_search \u2192 bash \u2192 bash": 13,
+      "memory_search \u2192 bash \u2192 bash \u2192 bash": 13,
+      "bash \u2192 read \u2192 bash \u2192 bash": 11,
+      "read \u2192 read \u2192 read \u2192 read": 11,
+      "bash \u2192 bash \u2192 bash \u2192 read": 10,
+      "bash \u2192 bash \u2192 read \u2192 bash": 10,
+      "read \u2192 exec \u2192 exec \u2192 exec": 8,
+      "exec \u2192 exec \u2192 exec \u2192 memory_search": 7,
+      "exec \u2192 read \u2192 exec \u2192 exec": 6,
+      "exec \u2192 exec \u2192 exec \u2192 read": 6,
+      "exec \u2192 exec \u2192 read \u2192 exec": 6,
+      "exec \u2192 exec \u2192 memory_search \u2192 exec": 5,
+      "memory_search \u2192 exec \u2192 exec \u2192 exec": 5,
+      "exec \u2192 exec \u2192 edit \u2192 exec": 5,
+      "read \u2192 read \u2192 bash \u2192 bash": 4
+    },
+    "5": {
+      "bash \u2192 bash \u2192 bash \u2192 bash \u2192 bash": 55,
+      "exec \u2192 exec \u2192 exec \u2192 exec \u2192 exec": 54,
+      "read \u2192 bash \u2192 bash \u2192 bash \u2192 bash": 19,
+      "bash \u2192 bash \u2192 bash \u2192 memory_search \u2192 bash": 15,
+      "bash \u2192 bash \u2192 memory_search \u2192 bash \u2192 bash": 13,
+      "bash \u2192 bash \u2192 bash \u2192 bash \u2192 memory_search": 10,
+      "bash \u2192 bash \u2192 read \u2192 bash \u2192 bash": 10,
+      "bash \u2192 read \u2192 bash \u2192 bash \u2192 bash": 10,
+      "bash \u2192 memory_search \u2192 bash \u2192 bash \u2192 bash": 9,
+      "read \u2192 read \u2192 read \u2192 read \u2192 read": 9,
+      "bash \u2192 bash \u2192 bash \u2192 read \u2192 bash": 8,
+      "bash \u2192 bash \u2192 bash \u2192 bash \u2192 read": 8,
+      "memory_search \u2192 bash \u2192 bash \u2192 bash \u2192 bash": 8,
+      "exec \u2192 exec \u2192 exec \u2192 exec \u2192 memory_search": 6,
+      "read \u2192 exec \u2192 exec \u2192 exec \u2192 exec": 5,
+      "exec \u2192 exec \u2192 exec \u2192 memory_search \u2192 exec": 5,
+      "read \u2192 read \u2192 bash \u2192 bash \u2192 bash": 4,
+      "exec \u2192 exec \u2192 memory_search \u2192 exec \u2192 exec": 4,
+      "exec \u2192 memory_search \u2192 exec \u2192 exec \u2192 exec": 4,
+      "exec \u2192 read \u2192 exec \u2192 exec \u2192 exec": 4
+    }
+  },
+  "candidates": [
+    {
+      "pattern": [
+        "read",
+        "bash",
+        "bash",
+        "bash",
+        "bash"
+      ],
+      "count": 19,
+      "length": 5
+    },
+    {
+      "pattern": [
+        "bash",
+        "bash",
+        "bash",
+        "memory_search",
+        "bash"
+      ],
+      "count": 15,
+      "length": 5
+    },
+    {
+      "pattern": [
+        "exec",
+        "exec",
+        "exec",
+        "exec",
+        "memory_search"
+      ],
+      "count": 6,
+      "length": 5
+    },
+    {
+      "pattern": [
+        "read",
+        "exec",
+        "exec",
+        "exec",
+        "exec"
+      ],
+      "count": 5,
+      "length": 5
+    },
+    {
+      "pattern": [
+        "edit",
+        "exec",
+        "exec",
+        "edit",
+        "exec"
+      ],
+      "count": 3,
+      "length": 5
+    },
+    {
+      "pattern": [
+        "write",
+        "exec",
+        "exec",
+        "exec"
+      ],
+      "count": 4,
+      "length": 4
+    },
+    {
+      "pattern": [
+        "exec",
+        "exec",
+        "exec",
+        "cron"
+      ],
+      "count": 3,
+      "length": 4
+    },
+    {
+      "pattern": [
+        "memory_search",
+        "bash",
+        "bash",
+        "read"
+      ],
+      "count": 3,
+      "length": 4
+    },
+    {
+      "pattern": [
+        "exec",
+        "read",
+        "edit",
+        "exec"
+      ],
+      "count": 3,
+      "length": 4
+    },
+    {
+      "pattern": [
+        "gateway",
+        "exec",
+        "exec"
+      ],
+      "count": 3,
+      "length": 3
+    },
+    {
+      "pattern": [
+        "exec",
+        "exec",
+        "process"
+      ],
+      "count": 3,
+      "length": 3
+    },
+    {
+      "pattern": [
+        "cron",
+        "bash",
+        "bash"
+      ],
+      "count": 3,
+      "length": 3
+    }
+  ]
+}
