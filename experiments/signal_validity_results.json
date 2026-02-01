@@ -1,0 +1,218 @@
+{
+  "n_samples": 20,
+  "precision": 0.75,
+  "real_issues": 15,
+  "false_positives": 5,
+  "by_class": {
+    "ux_friction": {
+      "real": 11,
+      "false": 5
+    },
+    "defect": {
+      "real": 4,
+      "false": 0
+    }
+  },
+  "results": [
+    {
+      "fingerprint_id": "fp1:c59eaf2dbf35682899097a5ab159b0f6d0c4075afeabcb4e925bdd3f11937f48",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System lacks saved context for key entities, causing repeated context requests.",
+      "session_context": "",
+      "is_real_issue": false,
+      "confidence": "high",
+      "reasoning": "No raw session context was provided to analyze, making it impossible to verify if the detected signal represents actual UX friction or is a false positive.",
+      "severity_if_real": "none"
+    },
+    {
+      "fingerprint_id": "fp1:c059ae8bc01eccaa8067a593509f6c75c94335a53528124fa458abc5bbaf445c",
+      "signal_class": "ux_friction",
+      "canonical_summary": "Assistant repeatedly asks for same information, potentially causing user frustration.",
+      "session_context": "",
+      "is_real_issue": false,
+      "confidence": "high",
+      "reasoning": "No raw session context was provided to analyze, making it impossible to verify if the assistant actually repeated requests for the same information or if this represents normal clarification behavior.",
+      "severity_if_real": "none"
+    },
+    {
+      "fingerprint_id": "fp1:c709158b5658e3bdb7bfdf6e5077374e4b5e8d9753fe06606c5ce0d0510f8622",
+      "signal_class": "ux_friction",
+      "canonical_summary": "User must repeatedly confirm communication channels and message framing for outreach.",
+      "session_context": "",
+      "is_real_issue": false,
+      "confidence": "high",
+      "reasoning": "No raw session context was provided to analyze, making it impossible to determine if repeated confirmations represent genuine UX friction or necessary verification steps for sensitive outreach operations.",
+      "severity_if_real": "none"
+    },
+    {
+      "fingerprint_id": "fp1:9563d295296a152a06877b15f99c60c36b08088fb55a7e3449f11e83c2688e4e",
+      "signal_class": "ux_friction",
+      "canonical_summary": "Assistant repeatedly requests clarifications about communication channel and ask type, indicating possible inefficien...",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeatedly requesting clarifications about basic interaction parameters suggests the AI lacks context awareness or has poor prompt understanding, which would create user friction. However, without seeing the actual session logs, I cannot determine if these requests were justified by genuinely ambiguous user inputs.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:d6ee337b9a84fab98e2e57c9fc98e115b2ce28e5caeae70a0ea520cca8e2c091",
+      "signal_class": "ux_friction",
+      "canonical_summary": "User repeatedly receives 'Reminder needs attention' without clear resolution or next steps.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "A user repeatedly receiving 'Reminder needs attention' messages without clear resolution steps creates a frustrating dead-end experience that prevents task completion. This indicates either unclear UI/messaging or a functional bug in the reminder system.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:5c1e0e66d995da39c1be759d2166a7fc133377a0132297c3d7ebf3cceab9cb13",
+      "signal_class": "ux_friction",
+      "canonical_summary": "Assistant repeatedly asks for channel and context details before drafting messages, indicating opportunity to streaml...",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeatedly asking for the same contextual information (channel/context details) before performing routine tasks creates unnecessary friction and suggests the system isn't efficiently gathering or retaining basic required information.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:32bb5827fbbabbc061689c38d7124ac527eb45545b0df2f007aef331f3372366",
+      "signal_class": "defect",
+      "canonical_summary": "System repeatedly logs 'Cron (error)' messages indicating possible internal error state.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "Repeated 'Cron (error)' messages indicate a failing scheduled task or background process that should be functioning properly. This suggests a systematic failure that could impact system functionality and reliability.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:893af3ebb0b1d21e381cde72fba71071c1559a6464eef8f8f899c78dd29b23e8",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System repeatedly issues 'Cron (error)' messages indicating a recurring error state.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "Repeated cron error messages indicate a systematic failure in scheduled task execution, which would likely frustrate users and suggests an underlying system malfunction that needs investigation.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:e2fb71bf296d499597bcfbcdb0c0fbb82b0ff3e2de384a9281164e68d2b9ad17",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System repeatedly reports 'Cron (error)' but continues functioning, indicating unclear error handling.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeated 'Cron (error)' messages with continued functioning suggests poor error handling or logging - users shouldn't see cryptic error messages for normal operations, and if there are real errors, they should be handled properly.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:3c5dd517a83b0e6ee0040d917540dca7459abfe40a0c4292f93709621ad8eeec",
+      "signal_class": "ux_friction",
+      "canonical_summary": "Assistant should clarify and confirm user instructions before drafting outreach messages to avoid ambiguity.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Clarifying ambiguous instructions before drafting outreach messages is a legitimate UX improvement that could prevent miscommunication and reduce revision cycles. However, without seeing the actual session context, I cannot assess how severe the ambiguity was or if the assistant's behavior was unreasonable.",
+      "severity_if_real": "low"
+    },
+    {
+      "fingerprint_id": "fp1:e40caa0ce87d8e846d4aad4c236520e57ed565e4d9d6cc28ce826bf73aa5ac07",
+      "signal_class": "ux_friction",
+      "canonical_summary": "User likely frustrated by repeated 'Reminder needs attention' prompts without progress.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "Repeated prompts about the same issue without any clear path to resolution or progress creates a frustrating user experience and suggests the reminder system lacks effective follow-up mechanisms.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:035eca72ab71d7a5652d2a66bf7e53780bc7b08611654dc6ff109d2450399c21",
+      "signal_class": "defect",
+      "canonical_summary": "System repeatedly reports no saved context for key entities, causing repeated error messages.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "Repeated error messages about missing saved context for key entities would create a poor user experience and indicate the system is failing to maintain conversation continuity properly.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:3d13a00f23c7165d5d2f9382972dd02dddfdbf9d6009b6cd9ea657fa618eb18b",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System repeatedly issues 'Cron (error)' messages indicating potential issues with task handling or state management.",
+      "session_context": "",
+      "is_real_issue": false,
+      "confidence": "high",
+      "reasoning": "No raw session context was provided to analyze the claimed 'Cron (error)' messages, making this an incomplete signal that cannot be validated or acted upon.",
+      "severity_if_real": "none"
+    },
+    {
+      "fingerprint_id": "fp1:0213028b0b70f6fa63e6de591ffb1e5efd5a88b76eb48f42c84be1fac58279cd",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System does not recall prior notes on contacts, leading to repeated memory checks and user prompts.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "A system that fails to recall previously stored contact notes creates a poor user experience by forcing users to repeatedly provide the same information and undermines the core value proposition of having persistent memory.",
+      "severity_if_real": "high"
+    },
+    {
+      "fingerprint_id": "fp1:c3fdbcd9974dc37d0c92553cd617be1835085fcbc2db58513b155ccc0401f4e7",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System repeatedly reports 'Cron (error)' indicating lack of prior notes on Margarita Gelata or paper-review context.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeated 'Cron (error)' messages indicating missing context suggests the system is failing to maintain or access necessary session information, which would degrade user experience through lost context and repeated errors.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:338c672a782053ebdfb182c17d65e79b3d07f7d7fd52ea00436eeb7d5de57f9f",
+      "signal_class": "ux_friction",
+      "canonical_summary": "Assistant repeatedly asks for contact channel and tone details for outreach messages.",
+      "session_context": "",
+      "is_real_issue": false,
+      "confidence": "high",
+      "reasoning": "Asking for contact channel and tone details when crafting outreach messages is appropriate and necessary behavior to provide relevant, tailored assistance rather than making assumptions about user preferences.",
+      "severity_if_real": "none"
+    },
+    {
+      "fingerprint_id": "fp1:86a963169647d4aca388d6265013e7f10a373a6059828a3d3aa3180756bda4fc",
+      "signal_class": "defect",
+      "canonical_summary": "System repeatedly reports 'Cron (error)' indicating missing prior notes in memory about contacts and context.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "A system repeatedly reporting 'Cron (error)' about missing prior notes indicates a persistent memory or data persistence failure that would disrupt continuity and user experience.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:78d643cdb35f9ecc59b9ce7cfd9a1539dcb6180aee230b82fc47b9894baf6d2c",
+      "signal_class": "ux_friction",
+      "canonical_summary": "Assistant repeatedly asks for outreach channel and tone details, indicating a need for better initial prompt to gathe...",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeatedly asking for the same information suggests the assistant's initial prompt structure is inadequate for gathering necessary details upfront, which would create friction for users who have to provide information piecemeal.",
+      "severity_if_real": "low"
+    },
+    {
+      "fingerprint_id": "fp1:955b4c31ddfe80e9511f6fb8b00f470b0f9d528e9bb6d4fd7b5fdbb0ba2498e4",
+      "signal_class": "ux_friction",
+      "canonical_summary": "User may be frustrated by repeated reminders and requests for the same information about contacting Margarita and Mat...",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeated requests for the same information (contacting Margarita and Mat) suggests the AI may not be retaining context properly or may be stuck in a loop, which would genuinely frustrate users.",
+      "severity_if_real": "medium"
+    },
+    {
+      "fingerprint_id": "fp1:547b740ca3c56f4bcd483714f7564cf67dc7452e1eef7446916a109bfdd8c2fd",
+      "signal_class": "defect",
+      "canonical_summary": "System repeatedly logs 'Cron (error)' despite normal reminder interactions.",
+      "session_context": "",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Error logs appearing repeatedly during normal operations suggests a underlying system malfunction that could impact reliability, even if users aren't immediately affected.",
+      "severity_if_real": "medium"
+    }
+  ]
+}
