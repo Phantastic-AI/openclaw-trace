@@ -95,6 +95,86 @@ def _build_prompt(*, template: str, ticket: dict[str, str] | None, context: str)
     )
 
 
+def _split_template(template_text: str) -> tuple[list[str], list[dict[str, str]]]:
+    lines = template_text.splitlines()
+    preamble: list[str] = []
+    sections: list[dict[str, str]] = []
+    current: dict[str, str] | None = None
+    body_lines: list[str] = []
+    for line in lines:
+        if line.startswith("## "):
+            if current is not None:
+                current["body"] = "\n".join(body_lines).rstrip()
+                sections.append(current)
+            current = {"heading": line.strip(), "body": ""}
+            body_lines = []
+            continue
+        if current is None:
+            preamble.append(line)
+        else:
+            body_lines.append(line)
+    if current is not None:
+        current["body"] = "\n".join(body_lines).rstrip()
+        sections.append(current)
+    return preamble, sections
+
+
+def _render_preamble(preamble_lines: list[str], ticket: dict[str, str] | None) -> str:
+    out: list[str] = []
+    origin = ticket.get("url") if ticket else "Unknown"
+    for line in preamble_lines:
+        if line.startswith("# "):
+            out.append("# Research Brief (v1)")
+            continue
+        if line.strip().lower().startswith("origin:"):
+            out.append(f"Origin: {origin}")
+            continue
+        out.append(line)
+    return "\n".join(out).strip()
+
+
+def _build_section_prompt(
+    *,
+    section_heading: str,
+    section_body: str,
+    ticket: dict[str, str] | None,
+    context: str,
+    brief_so_far: str,
+) -> str:
+    system_context = (
+        "You are writing a research brief for a recursive self-improvement system. "
+        "Some issues are objective bugs/patches, some are subjective opportunities to delight, "
+        "and some have multiple valid answers that require research/experiments. "
+        "Fill only the requested section. Output markdown only. Keep it concise. "
+        "If information is missing, write 'Unknown' and add a validation test."
+    )
+    ticket_block = ""
+    if ticket:
+        ticket_block = (
+            f"Ticket: {ticket.get('title','')}\n"
+            f"URL: {ticket.get('url','')}\n"
+            f"Description:\n{ticket.get('description','')}\n"
+        )
+    return (
+        f"{system_context}\n\n"
+        f"{ticket_block}\n"
+        f"{context}\n\n"
+        "BRIEF SO FAR:\n"
+        f"{brief_so_far}\n\n"
+        "SECTION TEMPLATE (fill only this section):\n"
+        f"{section_heading}\n{section_body}\n\n"
+        "Output ONLY this section (heading + filled bullets), nothing else.\n"
+    )
+
+
+def _build_section_revision_prompt(*, section_text: str, critic_notes: str) -> str:
+    return (
+        "Revise the section using the critic notes. Output ONLY the revised section.\n\n"
+        f"CRITIC NOTES:\n{critic_notes}\n\n"
+        f"SECTION:\n{section_text}\n"
+    )
+
+
 def _run_claude(prompt: str, model: str) -> str:
     cmd = [
         "claude",
@@ -127,6 +207,19 @@ def _run_codex_critic(brief: str, model: str) -> str:
     return proc.stdout
 
 
+def _run_codex_section_critic(section_text: str, model: str) -> str:
+    prompt = (
+        "Critique this single research-brief section for missing evidence, gaps, or vague claims. "
+        "Return concise bullets with concrete fixes. If it is solid, return 'OK'.\n\n"
+        f"{section_text}\n"
+    )
+    cmd = ["codex", "exec", "-c", f'model="{model}"', prompt]
+    proc = subprocess.run(cmd, text=True, capture_output=True, check=False)
+    if proc.returncode != 0:
+        raise RuntimeError(proc.stderr.strip() or "Codex exec failed")
+    return proc.stdout
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Headless research-brief runner (Claude Code + optional Codex critic)")
     ap.add_argument("--ticket-id", type=int, default=None, help="Phorge ticket ID (e.g., 145)")
@@ -137,6 +230,7 @@ def main() -> None:
     ap.add_argument("--max-context-chars", type=int, default=12000)
     ap.add_argument("--model", type=str, default=os.environ.get("CLAUDE_MODEL", "sonnet"))
     ap.add_argument("--critic", action="store_true", help="Run Codex critic and write a review file")
+    ap.add_argument("--actor-critic", action="store_true", help="Generate per-section with Codex critique/rewrite")
     ap.add_argument("--critic-model", type=str, default=os.environ.get("CODEX_MODEL", "gpt-5.2-codex"))
     ap.add_argument("--dry-run", action="store_true", help="Print prompt and exit")
 
@@ -155,13 +249,35 @@ def main() -> None:
 
     template_text = _read_text(Path(args.template))
     context_text = _read_context([Path(p) for p in args.context], args.max_context_chars)
-    prompt = _build_prompt(template=template_text, ticket=ticket, context=context_text)
+    if args.actor_critic:
+        preamble_lines, sections = _split_template(template_text)
+        preamble = _render_preamble(preamble_lines, ticket)
+        brief_parts: list[str] = [preamble] if preamble else []
 
-    if args.dry_run:
-        print(prompt)
-        return
+        for section in sections:
+            section_prompt = _build_section_prompt(
+                section_heading=section["heading"],
+                section_body=section["body"],
+                ticket=ticket,
+                context=context_text,
+                brief_so_far="\n\n".join(brief_parts).strip(),
+            )
+            if args.dry_run:
+                print(section_prompt)
+                return
+            draft = _run_claude(section_prompt, args.model).strip()
+            critic = _run_codex_section_critic(draft, args.critic_model).strip()
+            if critic.lower() != "ok":
+                draft = _run_claude(_build_section_revision_prompt(section_text=draft, critic_notes=critic), args.model).strip()
+            brief_parts.append(draft)
 
-    brief = _run_claude(prompt, args.model)
+        brief = "\n\n".join(part for part in brief_parts if part)
+    else:
+        prompt = _build_prompt(template=template_text, ticket=ticket, context=context_text)
+        if args.dry_run:
+            print(prompt)
+            return
+        brief = _run_claude(prompt, args.model)
 
     out_path: Path
     if args.out:

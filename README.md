@@ -135,6 +135,15 @@ python scripts/run_research_brief.py \
   --critic
 ```
 
+Actor‑critic (Codex checks each section as it’s drafted):
+
+```bash
+python scripts/run_research_brief.py \
+  --ticket-id 145 \
+  --context rollup.json \
+  --actor-critic
+```
+
 ## Privacy / PII
 
 - `mine-signals` is instructed not to emit PII, but v1 redaction is minimal.
