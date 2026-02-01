@@ -6,6 +6,7 @@ Hypothesis: cron.list timeouts are caused by lock contention when jobs are execu
 This script measures latency and reproduces the issue.
 
 Traces: https://wandb.ai/ninjaa-self/openclaw-trace-experiments/weave
+Redis: t154:* keys for persistence
 """
 
 import json
@@ -21,6 +22,10 @@ from typing import Optional, Any
 # Weave integration
 WEAVE_AVAILABLE = False
 weave = None
+
+# Redis integration
+REDIS_AVAILABLE = False
+redis_client = None
 
 def setup_weave():
     global WEAVE_AVAILABLE, weave
@@ -39,6 +44,90 @@ def setup_weave():
     except Exception as e:
         print(f"[WARN] Weave init failed: {e}", file=sys.stderr)
         return False
+
+
+def setup_redis():
+    global REDIS_AVAILABLE, redis_client
+    try:
+        import redis
+        # Try local Redis
+        r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+        r.ping()
+        redis_client = r
+        REDIS_AVAILABLE = True
+        print("[OK] Redis connected: localhost:6379")
+        return True
+    except Exception as e:
+        print(f"[WARN] Redis not available: {e}", file=sys.stderr)
+        return False
+
+
+def redis_log_latency(phase: str, latency_ms: float, success: bool):
+    """Log individual latency sample to Redis."""
+    if not REDIS_AVAILABLE or not redis_client:
+        return
+    
+    try:
+        key = f"t154:latencies:{phase}"
+        redis_client.lpush(key, latency_ms)
+        redis_client.ltrim(key, 0, 999)  # Keep last 1000
+        
+        # Track success/failure counts
+        if success:
+            redis_client.incr(f"t154:success:{phase}")
+        else:
+            redis_client.incr(f"t154:failure:{phase}")
+    except Exception as e:
+        print(f"[WARN] Redis log failed: {e}", file=sys.stderr)
+
+
+def redis_save_experiment(phase: str, results: list[dict], stats: dict):
+    """Save full experiment results to Redis."""
+    if not REDIS_AVAILABLE or not redis_client:
+        return
+    
+    try:
+        ts = int(time.time())
+        key = f"t154:experiment:{phase}:{ts}"
+        data = {
+            "phase": phase,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "stats": stats,
+            "results": results
+        }
+        redis_client.set(key, json.dumps(data), ex=86400 * 7)  # 7 day TTL
+        print(f"[OK] Redis: saved to {key}")
+    except Exception as e:
+        print(f"[WARN] Redis save failed: {e}", file=sys.stderr)
+
+
+def redis_get_stats(phase: str) -> dict:
+    """Get aggregated stats from Redis."""
+    if not REDIS_AVAILABLE or not redis_client:
+        return {}
+    
+    try:
+        key = f"t154:latencies:{phase}"
+        latencies = [float(x) for x in redis_client.lrange(key, 0, -1)]
+        if not latencies:
+            return {}
+        
+        latencies.sort()
+        n = len(latencies)
+        return {
+            "source": "redis",
+            "n_samples": n,
+            "p50_ms": latencies[int(n * 0.5)],
+            "p95_ms": latencies[int(n * 0.95)],
+            "p99_ms": latencies[int(n * 0.99)],
+            "max_ms": max(latencies),
+            "min_ms": min(latencies),
+            "success_count": int(redis_client.get(f"t154:success:{phase}") or 0),
+            "failure_count": int(redis_client.get(f"t154:failure:{phase}") or 0)
+        }
+    except Exception as e:
+        print(f"[WARN] Redis stats failed: {e}", file=sys.stderr)
+        return {}
 
 
 @dataclass
@@ -96,7 +185,7 @@ def call_cron_list() -> dict:
     }
 
 
-def run_baseline_inner(n_calls: int) -> list[dict]:
+def run_baseline_inner(n_calls: int, phase: str = "baseline") -> list[dict]:
     """Run baseline latency measurements (inner logic)."""
     results = []
     
@@ -112,6 +201,9 @@ def run_baseline_inner(n_calls: int) -> list[dict]:
             **call_result
         }
         results.append(result)
+        
+        # Log to Redis
+        redis_log_latency(phase, call_result["latency_ms"], call_result["success"])
         
         status = "✓" if call_result["success"] else "✗"
         print(f"  [{i+1}/{n_calls}] {status} {call_result['latency_ms']:.1f}ms (jobs={call_result['jobs_count']})")
@@ -178,15 +270,24 @@ def run_experiment(phase: str, n_calls: int) -> dict:
     """
     print(f"\n=== {phase.upper()}: {n_calls} calls to cron.list ===\n")
     
-    results = run_baseline_inner(n_calls)
+    results = run_baseline_inner(n_calls, phase)
     stats = analyze_results(results, phase)
     print_stats(stats)
+    
+    # Save to Redis
+    redis_save_experiment(phase, results, stats)
+    
+    # Get cumulative Redis stats
+    redis_stats = redis_get_stats(phase)
+    if redis_stats:
+        print(f"\n[Redis cumulative] {redis_stats['n_samples']} samples, P50={redis_stats['p50_ms']:.1f}ms, P99={redis_stats['p99_ms']:.1f}ms")
     
     return {
         "experiment": "t154_cron_timeout",
         "phase": phase,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "stats": stats,
+        "redis_stats": redis_stats,
         "results": results
     }
 
@@ -205,9 +306,11 @@ def main():
     print(f"Phase: {args.phase}")
     print(f"Calls: {args.n_calls}")
     
-    # Initialize Weave
+    # Initialize integrations
     weave_ok = setup_weave()
+    redis_ok = setup_redis()
     print(f"Weave: {'enabled' if weave_ok else 'disabled'}")
+    print(f"Redis: {'enabled' if redis_ok else 'disabled'}")
     print("=" * 60)
     
     # If Weave is available, wrap the experiment function
