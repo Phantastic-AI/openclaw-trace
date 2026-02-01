@@ -2,6 +2,8 @@
 
 > 🔄 **Built with the loop**: This repo is developed and maintained by AI agents using the same recursive improvement process it implements. Vibe-engineered, evidence-grounded.
 
+📽️ **[Slides](https://cdn.phantastic.ai/openclaw-trace/)** · Built for the [W&B Self-Improving Agents Hackathon](https://lu.ma/weavehacks3)
+
 A **recursive self-improvement pipeline** for OpenClaw / Clawdbot session traces (JSONL).
 
 Core idea: mine grounded signals from real agent work, roll them up into clusters, convert those into tickets (or ticket IR), then drive research briefs and experiments. Repeat.
