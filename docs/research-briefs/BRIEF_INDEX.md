@@ -11,6 +11,8 @@
 |----|-------|---------|-----|-------------|--------|
 | **T154** | reliability_perf (cron timeout) | Lock contention in CronService blocks reads during job execution | Non-blocking cache reads for `list()` + `status()` | [019c1b21...](https://wandb.ai/ninjaa-self/openclaw-trace-experiments/r/call/019c1b21-ab4b-70d9-94df-dabe71ccc165) | ✅ Fix built, awaiting deploy |
 | **UX-01** | ux_friction (cron error spam) | 72% of "Cron (error)" messages contain successful content (false errors) | Separate delivery failure from job failure | [019c1b36...](https://wandb.ai/ninjaa-self/openclaw-trace-experiments/r/call/019c1b36-dadf-7425-91bf-b8e77316351b) | ✅ Analysis complete, fix proposed |
+| **EVAL-01** | Signal Classification | Classifier accuracy 45%; process_tooling/ux_friction boundary fuzzy | Merge classes, add keyword features | [019c1b4b...](https://wandb.ai/ninjaa-self/openclaw-trace-experiments/r/call/019c1b4b-b35b-743f-8a8a-0978de1bc367) | ✅ Denario experiment complete |
+| **VALID-01** | Signal Validity | **75% precision** — defect 100%, ux_friction 69% | Improve context retrieval for validation | N/A | ✅ Ground truth validated |
 
 ---
 
