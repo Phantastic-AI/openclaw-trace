@@ -6,7 +6,7 @@ Instructions for AI coding agents (Codex, Claude Code, etc.) working on **opencl
 
 ## Current Work
 
-**Main ticket:** [T145](https://hub.phantastic.ai/T145) — RLM self-improvement: one-pass LLM mining of errors + frustrations + experiment suggestions from session JSONL
+**Main ticket:** [T151](https://hub.phantastic.ai/T151) — RLM self-improvement: multi‑phase workflow (signals → tickets → research → experiments → fixes)
 
 **Oracle guidance:** The first comment on T145 contains detailed design guidance from the Oracle (GPT-5.2-Pro). Read it before starting — it's substantial but important.
 

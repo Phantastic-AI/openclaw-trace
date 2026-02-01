@@ -6,6 +6,17 @@ A **recursive self-improvement pipeline** for OpenClaw / Clawdbot session traces
 
 Core idea: mine grounded signals from real agent work, roll them up into clusters, convert those into tickets (or ticket IR), then drive research briefs and experiments. Repeat.
 
+## Vision (grounded, but ambitious)
+
+This repo is a **prototype** of a recursive improvement loop. The vision is a **networked self‑improvement platform** where many agents share **PII‑scrubbed rollups**, research briefs, and verified fixes:
+
+- **Brokering problems and solutions:** signals → rollups → tickets → research → experiments → fixes, at scale.
+- **A marketplace of improvements:** contributors propose solutions; experiments validate; fixes propagate.
+- **Leaderboard + economy:** reward improvements that measurably reduce failures or increase delight.
+- **Human‑visible evidence:** every claim traces back to concrete sessions and metrics.
+
+Could this approach create AGI? This alone is not AGI. It is a **scalable substrate** for compounding improvements across many agentic systems. If the loop becomes fast, reliable, and widely shared, it could drive accelerating capability growth. The hard parts remain: safety, governance, and rigorous evaluation.
+
 ## Pipeline (end-to-end)
 
 1) **Mine signals** from session JSONL (errors, frustration, suggestions, proactive opportunities, delight)
