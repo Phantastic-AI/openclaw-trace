@@ -1,6 +1,24 @@
 # AGENTS.md
 
-Instructions for AI coding agents (Codex, Claude Code, etc.) working on this VPS.
+Instructions for AI coding agents (Codex, Claude Code, etc.) working on **openclaw-trace**.
+
+---
+
+## Current Work
+
+**Main ticket:** [T145](https://hub.phantastic.ai/T145) — RLM self-improvement: one-pass LLM mining of errors + frustrations + experiment suggestions from session JSONL
+
+**Oracle guidance:** The first comment on T145 contains detailed design guidance from the Oracle (GPT-5.2-Pro). Read it before starting — it's substantial but important.
+
+**Subtasks:** Create subtasks under T145 for discrete pieces of work. Use `parent` transaction:
+```bash
+cat > /tmp/subtask.json <<'JSON'
+{"title":"Implement chunking strategy","description":"Per Oracle guidance...","priority":80,"parent":"T145"}
+JSON
+sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.createtask --as admin --input /tmp/subtask.json
+```
+
+**Project:** `#hal-self-improvement` — https://hub.phantastic.ai/tag/hal-self-improvement/
 
 ---
 
