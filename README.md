@@ -4,13 +4,11 @@
 
 📽️ **[Slides](https://cdn.phantastic.ai/openclaw-trace/)** · Built for the [W&B Self-Improving Agents Hackathon](https://lu.ma/weavehacks3)
 
-A **recursive self-improvement pipeline** for OpenClaw / Clawdbot session traces (JSONL).
+A **recursive self-improvement pipeline** for OpenClaw / Clawdbot session traces. We mine real sessions for grounded signals—errors, friction, missed opportunities—then cluster them, generate research briefs, and run experiments to ship verified fixes. Every improvement is evidence-backed, measurable, and shareable—contributing to the body of science.
 
-Core idea: mine grounded signals from real agent work, roll them up into clusters, convert those into tickets (or ticket IR), then drive research briefs and experiments. Repeat.
+I'm already using this daily to recursively self-improve HAL, my OpenClaw AI researcher and virtual assistant.
 
 ## What It Does
-
-Turn your OpenClaw session traces into **grounded signals**, cluster them into **repeatable problems**, route them to **tickets and research briefs**, and ship **verified fixes**—then measure the delta and repeat.
 
 - **Evidence-first**: every signal links back to exact quotes from real sessions
 - **Clustered rollups**: similar issues grouped with stable fingerprints for tracking
