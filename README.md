@@ -144,6 +144,8 @@ python scripts/run_research_brief.py \
   --actor-critic
 ```
 
+Actor‑critic defaults to **evidence‑first** (draft Evidence snapshot first, then use it as context).
+
 ## Privacy / PII
 
 - `mine-signals` is instructed not to emit PII, but v1 redaction is minimal.

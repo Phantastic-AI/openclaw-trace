@@ -231,6 +231,7 @@ def main() -> None:
     ap.add_argument("--model", type=str, default=os.environ.get("CLAUDE_MODEL", "sonnet"))
     ap.add_argument("--critic", action="store_true", help="Run Codex critic and write a review file")
     ap.add_argument("--actor-critic", action="store_true", help="Generate per-section with Codex critique/rewrite")
+    ap.add_argument("--evidence-first", action="store_true", help="Draft Evidence snapshot first and use it as context")
     ap.add_argument("--critic-model", type=str, default=os.environ.get("CODEX_MODEL", "gpt-5.2-codex"))
     ap.add_argument("--dry-run", action="store_true", help="Print prompt and exit")
 
@@ -250,28 +251,48 @@ def main() -> None:
     template_text = _read_text(Path(args.template))
     context_text = _read_context([Path(p) for p in args.context], args.max_context_chars)
     if args.actor_critic:
+        if not args.evidence_first:
+            # Default to evidence-first in actor-critic mode if not specified.
+            args.evidence_first = True
         preamble_lines, sections = _split_template(template_text)
         preamble = _render_preamble(preamble_lines, ticket)
         brief_parts: list[str] = [preamble] if preamble else []
+        generated_sections: dict[int, str] = {}
 
-        for section in sections:
+        def _generate_section(section_heading: str, section_body: str, brief_so_far: str) -> str:
             section_prompt = _build_section_prompt(
-                section_heading=section["heading"],
-                section_body=section["body"],
+                section_heading=section_heading,
+                section_body=section_body,
                 ticket=ticket,
                 context=context_text,
-                brief_so_far="\n\n".join(brief_parts).strip(),
+                brief_so_far=brief_so_far,
             )
             if args.dry_run:
                 print(section_prompt)
-                return
+                raise SystemExit(0)
             draft = _run_claude(section_prompt, args.model).strip()
             critic = _run_codex_section_critic(draft, args.critic_model).strip()
             if critic.lower() != "ok":
                 draft = _run_claude(_build_section_revision_prompt(section_text=draft, critic_notes=critic), args.model).strip()
+            return draft
+
+        if args.evidence_first:
+            for idx, section in enumerate(sections):
+                if section["heading"].startswith("## 2) Evidence snapshot"):
+                    evidence_text = _generate_section(section["heading"], section["body"], "\n\n".join(brief_parts).strip())
+                    generated_sections[idx] = evidence_text
+                    brief_parts.append(evidence_text)
+                    break
+
+        for idx, section in enumerate(sections):
+            if idx in generated_sections:
+                continue
+            draft = _generate_section(section["heading"], section["body"], "\n\n".join(brief_parts).strip())
+            generated_sections[idx] = draft
             brief_parts.append(draft)
 
-        brief = "\n\n".join(part for part in brief_parts if part)
+        ordered_sections = [generated_sections[idx] for idx in range(len(sections)) if idx in generated_sections]
+        brief = "\n\n".join([part for part in brief_parts[:1] if part] + ordered_sections)
     else:
         prompt = _build_prompt(template=template_text, ticket=ticket, context=context_text)
         if args.dry_run:
