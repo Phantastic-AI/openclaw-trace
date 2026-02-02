@@ -45,6 +45,7 @@ from typing import Optional
 
 # Data paths (update these if data moves)
 ROLLUP_PATH = "/home/debian/clawd/home/tmp/rollup_latest120_v2_snapshot.json"
+RAW_SIGNALS_PATH = "/home/debian/clawd/home/tmp/out_signals_latest120_v2.jsonl"
 SESSIONS_DIR = "/home/debian/clawd/home/tmp/sessions_latest_120_20260201_024756"
 
 # Problem classes to evaluate (signals we expect to be "issues")
@@ -105,6 +106,26 @@ def load_rollups(path: str = ROLLUP_PATH) -> list[dict]:
     return rollups
 
 
+def load_raw_signals(path: str = RAW_SIGNALS_PATH) -> dict:
+    """
+    Load raw signals indexed by summary for fuzzy matching.
+    Raw signals have actual evidence quotes from sessions.
+    """
+    signals_by_summary = defaultdict(list)
+    
+    with open(path) as f:
+        for line in f:
+            try:
+                sig = json.loads(line.strip())
+                summary = sig.get("summary", "")
+                signals_by_summary[summary].append(sig)
+            except:
+                continue
+    
+    print(f"  Loaded raw signals with {len(signals_by_summary)} unique summaries")
+    return signals_by_summary
+
+
 def get_signal_class(rollup: dict) -> str:
     """Get the primary class of a rollup based on kind_v2_counts."""
     counts = rollup.get("kind_v2_counts", {})
@@ -124,76 +145,54 @@ def filter_problem_signals(rollups: list[dict]) -> list[dict]:
 # CONTEXT RETRIEVAL
 # ============================================================================
 
-def get_session_context(rollup: dict, sessions_dir: str = SESSIONS_DIR, 
-                        max_events: int = 50, max_chars: int = 3000) -> str:
+def get_session_context(rollup: dict, raw_signals: dict, max_chars: int = 3000) -> str:
     """
-    Retrieve raw session context for a signal.
+    Retrieve evidence from raw signals — actual quotes from sessions.
     
-    This is the "evidence" we show to the evaluator — actual conversation
-    snippets from the sessions where this signal was detected.
+    The raw_signals dict is indexed by summary for fuzzy matching.
+    Each raw signal has an 'evidence' array with quotes.
     """
-    # Get session IDs referenced by this rollup
-    session_ids = set()
-    for sig in rollup.get("signals", []):
-        sid = sig.get("session_id", "")
-        if sid:
-            session_ids.add(sid)
+    canonical = rollup.get("canonical_summary", "")
     
-    if not session_ids:
-        return "[No session IDs found in rollup]"
+    evidence_snippets = []
     
-    context_snippets = []
-    sessions_dir_path = Path(sessions_dir)
-    
-    # Find matching session files
-    for sf in sessions_dir_path.glob("*.jsonl"):
-        try:
-            with open(sf) as f:
-                first_line = f.readline()
-                header = json.loads(first_line)
+    # Try to find matching raw signals by looking for similar summaries
+    for summary, signals in raw_signals.items():
+        # Check if this summary is related to our rollup
+        canonical_words = set(canonical.lower().split())
+        summary_words = set(summary.lower().split())
+        
+        if len(canonical_words & summary_words) >= 3:  # At least 3 words in common
+            for sig in signals[:3]:  # Up to 3 signals per summary
+                # Extract evidence quotes
+                for ev in sig.get("evidence", []):
+                    quote = ev.get("quote", "")
+                    role = ev.get("role", "")
+                    if quote:
+                        evidence_snippets.append(f"[{role}]: {quote}")
                 
-                if header.get("id") not in session_ids:
-                    continue
-                
-                # Read events from this session
-                f.seek(0)
-                lines = f.readlines()[:max_events]
-                
-                for line in lines:
-                    try:
-                        event = json.loads(line)
-                        msg = event.get("message", {})
-                        role = msg.get("role", "")
-                        content = msg.get("content", [])
-                        
-                        if isinstance(content, list):
-                            for block in content:
-                                if isinstance(block, dict) and block.get("type") == "text":
-                                    text = block.get("text", "")[:500]
-                                    if text and role:
-                                        context_snippets.append(f"[{role}]: {text}")
-                    except json.JSONDecodeError:
-                        continue
-        except Exception:
-            continue
+                # Also include the signal's own summary
+                evidence_snippets.append(f"[signal]: {summary}")
     
-    if not context_snippets:
-        # Fallback: use signal summaries from the rollup
-        for sig in rollup.get("signals", [])[:5]:
-            summary = sig.get("summary", "")
-            if summary:
-                context_snippets.append(f"[signal]: {summary}")
+    if not evidence_snippets:
+        return f"[canonical]: {canonical}"
     
-    # Join and truncate
-    full_context = "\n---\n".join(context_snippets[:15])
-    return full_context[:max_chars]
+    # Deduplicate
+    seen = set()
+    unique = []
+    for snip in evidence_snippets:
+        if snip not in seen:
+            seen.add(snip)
+            unique.append(snip)
+    
+    return "\n---\n".join(unique[:15])[:max_chars]
 
 
 # ============================================================================
 # VALIDATION LOGIC
 # ============================================================================
 
-def validate_signal(rollup: dict, client) -> SignalValidation:
+def validate_signal(rollup: dict, raw_signals: dict, client) -> SignalValidation:
     """
     Have Claude evaluate whether a signal represents a real issue.
     
@@ -203,7 +202,7 @@ def validate_signal(rollup: dict, client) -> SignalValidation:
     """
     signal_class = get_signal_class(rollup)
     summary = rollup.get("canonical_summary", "")
-    context = get_session_context(rollup)
+    context = get_session_context(rollup, raw_signals)
     
     prompt = f"""You are auditing an AI agent's self-improvement system.
 
@@ -316,6 +315,7 @@ def run_experiment(n_samples: int = 20, seed: Optional[int] = None) -> Experimen
     
     # Load and filter data
     rollups = load_rollups()
+    raw_signals = load_raw_signals()
     problem_rollups = filter_problem_signals(rollups)
     
     # Sample
@@ -338,7 +338,7 @@ def run_experiment(n_samples: int = 20, seed: Optional[int] = None) -> Experimen
         summary_preview = rollup.get("canonical_summary", "")[:50]
         print(f"[{i+1}/{actual_samples}] {summary_preview}...")
         
-        result = validate_signal(rollup, client)
+        result = validate_signal(rollup, raw_signals, client)
         validations.append(result)
         
         status = "✓ REAL" if result.is_real_issue else "✗ FALSE POS"
