@@ -1,0 +1,235 @@
+{
+  "experiment": "signal_classification_v2",
+  "timestamp": "2026-02-02T00:20:06.326295+00:00",
+  "n_samples": 10,
+  "metrics": {
+    "accuracy": 0.6,
+    "n_samples": 10,
+    "n_correct": 6,
+    "per_class": {
+      "ux_friction": {
+        "tp": 6,
+        "fp": 2,
+        "fn": 1,
+        "precision": 0.75,
+        "recall": 0.857,
+        "f1": 0.8
+      },
+      "proactive_opportunity": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": 0,
+        "recall": 0.0,
+        "f1": 0
+      },
+      "defect": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "precision": 0,
+        "recall": 0.0,
+        "f1": 0
+      },
+      "process_tooling": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0,
+        "f1": 0
+      },
+      "user_delight": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0,
+        "f1": 0
+      },
+      "capability_gap": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0
+      },
+      "reliability_perf": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0
+      }
+    },
+    "confusion_matrix": {
+      "ux_friction": {
+        "ux_friction": 6,
+        "process_tooling": 1,
+        "proactive_opportunity": 0,
+        "defect": 0,
+        "user_delight": 0,
+        "capability_gap": 0,
+        "reliability_perf": 0
+      },
+      "proactive_opportunity": {
+        "user_delight": 1,
+        "ux_friction": 1,
+        "proactive_opportunity": 0,
+        "defect": 0,
+        "process_tooling": 0,
+        "capability_gap": 0,
+        "reliability_perf": 0
+      },
+      "defect": {
+        "ux_friction": 1,
+        "proactive_opportunity": 0,
+        "defect": 0,
+        "process_tooling": 0,
+        "user_delight": 0,
+        "capability_gap": 0,
+        "reliability_perf": 0
+      },
+      "process_tooling": {
+        "ux_friction": 0,
+        "proactive_opportunity": 0,
+        "defect": 0,
+        "process_tooling": 0,
+        "user_delight": 0,
+        "capability_gap": 0,
+        "reliability_perf": 0
+      },
+      "user_delight": {
+        "ux_friction": 0,
+        "proactive_opportunity": 0,
+        "defect": 0,
+        "process_tooling": 0,
+        "user_delight": 0,
+        "capability_gap": 0,
+        "reliability_perf": 0
+      },
+      "capability_gap": {
+        "ux_friction": 0,
+        "proactive_opportunity": 0,
+        "defect": 0,
+        "process_tooling": 0,
+        "user_delight": 0,
+        "capability_gap": 0,
+        "reliability_perf": 0
+      },
+      "reliability_perf": {
+        "ux_friction": 0,
+        "proactive_opportunity": 0,
+        "defect": 0,
+        "process_tooling": 0,
+        "user_delight": 0,
+        "capability_gap": 0,
+        "reliability_perf": 0
+      }
+    }
+  },
+  "results": [
+    {
+      "fingerprint_id": "fp1:21ebc716ea7096a41739abc1db2418e50d531fe27ff34db764561124bd2c7c9c",
+      "signal_class_auto": "ux_friction",
+      "signal_class_claude": "ux_friction",
+      "canonical_summary": "Assistant repeatedly asks for similar information about contact channels and message framing, indicating possible red...",
+      "session_context": "[user]: What\u2019s the best way to contact Margarita + Matthew (email, DM, Twitter/X, LinkedIn)?\n---\n[assistant]: Two inputs to finalize:\n1) Actual ask to **Matthew** (quick chat / feedback on a draft / pointers / collab / hiring / other).  \n2) Channel to contact him (email / LinkedIn / X/DM).\n---\n[signal]: Assistant repeatedly requests same details about contact channels and ask specifics, indicating potential to streamli...\n---\n[assistant]: Tell me:\n1) Channel for outreach (Margarita + Matthew): **email / LinkedIn / X / iMessage / Mattermost DM**  \n2) Exact ask for Matthew\n---\n[signal]: Assistant repeatedly asks for the same information about channels and exact asks for contacting Margarita and Matthew.\n---\n[user]: If you want, I can draft two quick messages:\n\n1) **Ping to Margarita Gelata (pre-req)** \u2014 asking for the paper-review context you should have before contacting Matthew.\n---\n[assistant]: Then I\u2019ll draft both messages.\n---\n[signal]: Assistant can proactively draft messages once ...",
+      "confidence": "high",
+      "reasoning": "The assistant repeatedly asks for the same information about contact channels and message details multiple times throughout the session, creating a frustrating and confusing user experience. This repetitive behavior forces the user to provide the same inputs over and over, which is a clear UX friction issue.",
+      "match": true
+    },
+    {
+      "fingerprint_id": "fp1:c5457fc214dec4a0016e534fe1eb58320aa1adbdfa9ccca074271e7907d52538",
+      "signal_class_auto": "ux_friction",
+      "signal_class_claude": "ux_friction",
+      "canonical_summary": "Assistant should consistently read and follow HEARTBEAT.md to avoid unnecessary thinking responses.",
+      "session_context": "[toolResult]: Guidance (to avoid nagging):\n- Only report items that are truly new or changed.\n---\n[signal]: Assistant should avoid unnecessary tool calls when HEARTBEAT.md content is unchanged.\n---\n[assistant]: I think I need to send out a heartbeat confirmation. I\u2019m not sure if I need to call the tool for that, but the instruction says to send a heartbeat if it exists.\n---\n[signal]: Assistant should clarify or confirm when to send heartbeat confirmation beyond replying HEARTBEAT_OK.\n---\n[toolResult]: # HEARTBEAT.md\n\nGuidance (to avoid nagging):\n- Only report items that are truly new or changed.\n- Do not invent tasks from old chat context.\n- If nothing needs attention, reply HEARTBEAT_OK.\n---\n[signal]: Assistant should consistently read and follow HEARTBEAT.md to avoid unnecessary thinking responses.\n---\n[user]: Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats.\n---\n[signal]: Assistant should strictly follow HEARTB...",
+      "confidence": "high",
+      "reasoning": "The session shows repeated user frustration with the assistant not following HEARTBEAT.md instructions, requiring multiple explicit reminders to read and follow the guidance strictly. This represents a clear user experience friction where the assistant created confusion and annoyance by not adhering to established protocols.",
+      "match": true
+    },
+    {
+      "fingerprint_id": "fp1:62105acfe6db9c224d87e2912a59adf6490a710094b2f34b64cf3a10bc2a3098",
+      "signal_class_auto": "ux_friction",
+      "signal_class_claude": "ux_friction",
+      "canonical_summary": "Assistant repeatedly requests user input to draft messages, indicating opportunity to streamline input gathering.",
+      "session_context": "[user]: Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats.\n---\n[signal]: Repeated user requests to read HEARTBEAT.md and follow it strictly suggest possible dissatisfaction with assistant's...\n---\n[assistant]: Reminder still needs attention (Margarita + Matthew outreach), but I need 2 quick choices to finalize\n---\n[assistant]: Reminder needs attention: yes, I can draft both\u2014ping Margarita first, then outreach to Matthew\u2014but I need two details\n---\n[signal]: Assistant should clarify and confirm user instructions before drafting outreach messages to avoid ambiguity.\n---\n[user]: What\u2019s the best way to contact Margarita + Matthew (email, DM, Twitter/X, LinkedIn)?\n---\n[assistant]: Two inputs to finalize:\n1) Actual ask to **Matthew** (quick chat / feedback on a draft / pointers / collab / hiring / other).  \n2) Channel to contact him (email / LinkedIn / X/DM).\n---\n[signal]: Assistant repeatedly requests same details about ...",
+      "confidence": "high",
+      "reasoning": "The assistant repeatedly asks for the same information (contact channels and ask specifics) across multiple exchanges, creating a frustrating user experience where the user has to provide the same details multiple times instead of the assistant efficiently gathering all needed information upfront.",
+      "match": true
+    },
+    {
+      "fingerprint_id": "fp1:b9e734f0349b7ab663ae21dd0ac1f971a27aa96a3eb7fb3e34c7f9033ba0cdba",
+      "signal_class_auto": "proactive_opportunity",
+      "signal_class_claude": "user_delight",
+      "canonical_summary": "System can proactively draft outreach messages once key context from Margarita is received.",
+      "session_context": "[assistant]: Then I\u2019ll draft:\n- the ping to **Margarita** for context, and\n- the outreach to **Matthew**.\n---\n[signal]: System can proactively draft messages to Margarita and Matthew once user provides channel and ask details.\n---\n[user]: If you want, I can draft two quick messages:\n\n1) **Ping to Margarita Gelata (pre-req)** \u2014 asking for the paper-review context you should have before contacting Matthew.\n---\n[assistant]: Then I\u2019ll draft both messages.\n---\n[signal]: Assistant can proactively draft messages once user provides initial contact channel and ask details.\n---\n[assistant]: Paste Margarita\u2019s context (bullets) once you have it, and tell me whether you want Matthew ask to be a **quick call** or **async questions**.\n---\n[assistant]: I can tighten the Matthew note once you have it\u2014paste Margarita\u2019s context bullets here, and tell me whether you want to ask for a **15\u201320 min call** or prefer **async questions**.\n---\n[signal]: Assistant can proactively draft outreach messages once cont...",
+      "confidence": "high",
+      "reasoning": "The session shows the assistant proactively offering to draft multiple messages in different tones and formats to help the user with outreach, demonstrating helpful and anticipatory behavior that enhances the user experience.",
+      "match": false
+    },
+    {
+      "fingerprint_id": "fp1:709fc9a663150a9adb586310a0c5acb74b1144b819dda6e13d27345b32a1b5bb",
+      "signal_class_auto": "ux_friction",
+      "signal_class_claude": "ux_friction",
+      "canonical_summary": "User receives multiple reminders needing attention without clear resolution.",
+      "session_context": "[user]: Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats.\n---\n[signal]: Multiple system reminders about reading HEARTBEAT.md and following it strictly may indicate user frustration with rep...\n---\n[assistant]: Reminder needs attention.\n\nTell me:\n- Preferred channel for Matthew\n---\n[assistant]: Reminder needs attention.\n\nPaste Margarita\u2019s context when you have it, and tell me which channel you want for Matthew\n---\n[signal]: User repeatedly receives reminders to provide contact channels and context, indicating possible friction or delay in...\n---\n[assistant]: Reminder needs attention.\n---\n[signal]: User repeatedly receives reminders that 'Reminder needs attention' without clear progress indication.\n---\n[user]: I don\u2019t have any saved context on Margarita Gelata / the paper review\n---\n[user]: Before you ping Matthew, you need the context from Margarita\u2019s paper review.\n---\n[signal]: Repeated reminders and clarification...",
+      "confidence": "high",
+      "reasoning": "The user is receiving multiple repetitive reminders about tasks that need attention without clear progress or resolution, creating confusion and frustration. The repeated \"Reminder needs attention\" messages and cycling requests for the same information (Margarita's context, Matthew's channel) demonstrate a poor user experience with unclear system behavior.",
+      "match": true
+    },
+    {
+      "fingerprint_id": "fp1:029f4c8e4baa3b754168552e371e12b24a2c71f51d98f9014211e0b51c6042ad",
+      "signal_class_auto": "ux_friction",
+      "signal_class_claude": "ux_friction",
+      "canonical_summary": "System repeatedly instructs to read HEARTBEAT.md and not infer or repeat old tasks, which may be redundant.",
+      "session_context": "[toolResult]: # HEARTBEAT.md\n\nGuidance (to avoid nagging):\n- Only report items that are truly new or changed.\n- Do not invent tasks from old chat context.\n- If nothing needs attention, reply HEARTBEAT_OK.\n---\n[signal]: Assistant should consistently read and follow HEARTBEAT.md to avoid unnecessary thinking responses.\n---\n[user]: Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats.\n---\n[signal]: Assistant should strictly follow HEARTBEAT.md instructions to avoid repeating old tasks or inferring from prior chats.\n---\n[signal]: Repeated user requests to read HEARTBEAT.md and follow it strictly suggest possible dissatisfaction with assistant's...\n---\n[user]: Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.\n---\n[assistant]: HEARTBEAT_OK\n---\n[signal]: Assistant should better handle repeated instructions...",
+      "confidence": "high",
+      "reasoning": "The session shows repeated user instructions to read HEARTBEAT.md and follow it strictly, with multiple signals indicating the assistant is not consistently following the guidance to avoid redundant responses and repeating old tasks. This creates a frustrating user experience requiring repeated clarification of the same instructions.",
+      "match": true
+    },
+    {
+      "fingerprint_id": "fp1:25a4e1044fa064463137b505154cdb45eb156c9986d780b8000a7b8a4ec7debb",
+      "signal_class_auto": "proactive_opportunity",
+      "signal_class_claude": "ux_friction",
+      "canonical_summary": "System can proactively draft outreach messages once minimal context is provided to reduce user effort.",
+      "session_context": "[assistant]: Reminder still needs attention (Margarita + Matthew outreach), but I need 2 quick choices to finalize\n---\n[assistant]: Reminder needs attention: yes, I can draft both\u2014ping Margarita first, then outreach to Matthew\u2014but I need two details\n---\n[signal]: Assistant should clarify and confirm user instructions before drafting outreach messages to avoid ambiguity.\n---\n[assistant]: Then I\u2019ll draft:\n- the ping to **Margarita** for context, and\n- the outreach to **Matthew**.\n---\n[signal]: System can proactively draft messages to Margarita and Matthew once user provides channel and ask details.\n---\n[user]: If you want, I can draft two quick messages:\n\n1) **Ping to Margarita Gelata (pre-req)** \u2014 asking for the paper-review context you should have before contacting Matthew.\n---\n[assistant]: Then I\u2019ll draft both messages.\n---\n[signal]: Assistant can proactively draft messages once user provides initial contact channel and ask details.\n---\n[assistant]: Tell me:\n1) Channel to contact **Ma...",
+      "confidence": "high",
+      "reasoning": "The session evidence shows the assistant repeatedly asking for the same information multiple times to draft messages, which creates a frustrating user experience. This repetitive information gathering without clear progress represents a friction point in the interaction flow.",
+      "match": false
+    },
+    {
+      "fingerprint_id": "fp1:3379b7828736aa3928f851403ff478d813a58f2eae2c44294c5be03a1a7d211a",
+      "signal_class_auto": "ux_friction",
+      "signal_class_claude": "process_tooling",
+      "canonical_summary": "User repeatedly receives 'Cron (error)' system messages indicating possible backend issues.",
+      "session_context": "[assistant]: Then I\u2019ll draft:\n- the ping to **Margarita** for context, and\n- the outreach to **Matthew**.\n---\n[signal]: System can proactively draft messages to Margarita and Matthew once user provides channel and ask details.\n---\n[assistant]: Tell me:\n1) Channel to contact **Matthew** (email / LinkedIn / X / mutual intro)  \n2) Concrete ask (15-min chat / feedback on an idea / collaboration / hiring / other)\n---\n[assistant]: Tell me:\n1) Channel to reach out (email / LinkedIn / X / iMessage) for **Margarita** and **Matthew**  \n2) Angle (technical questions / collaboration / recruiting / product integration / other)\n---\n[signal]: Assistant repeatedly requests user input to draft messages, indicating opportunity to streamline input gathering.\n---\n[user]: System: [2026-01-31 19:05:25 UTC] Cron (error): Got it.\n---\n[user]: System: [2026-01-31 19:05:34 UTC] Cron (error): Got it.\n---\n[signal]: System repeatedly issues 'Cron (error)' messages despite no explicit error details.\n---\n[user]: Cron...",
+      "confidence": "high",
+      "reasoning": "The repeated 'Cron (error)' system messages appearing throughout the session indicate a backend cron job or scheduled process is malfunctioning and generating error outputs that are inappropriately being displayed to the user. This is clearly a tooling/infrastructure issue rather than a user-facing defect.",
+      "match": false
+    },
+    {
+      "fingerprint_id": "fp1:1a5a341690619e8d343af795d08d24f68b2cecaacf8fb2bb75d7eb3feca57dd7",
+      "signal_class_auto": "defect",
+      "signal_class_claude": "ux_friction",
+      "canonical_summary": "System repeatedly reports no saved context on Margarita Gelata / paper review causing repeated clarifications.",
+      "session_context": "[user]: System: [2026-01-31 19:05:25 UTC] Cron (error): Got it.\n---\n[user]: System: [2026-01-31 19:05:34 UTC] Cron (error): Got it.\n---\n[signal]: System repeatedly issues 'Cron (error)' messages despite no explicit error details.\n---\n[user]: Cron (error): I checked memory for anything on \u201cMargarita Gelata\u201d / prior paper-review context and didn\u2019t find any relevant notes.\n---\n[user]: Cron (error): I don\u2019t have any prior notes on \u201cMargarita Gelata\u201d / the paper-review context in memory (I checked).\n---\n[signal]: System repeatedly reports 'Cron (error)' related to missing prior notes on 'Margarita Gelata' and paper-review context.\n---\n[user]: I checked memory for prior notes on \u201cMargarita Gelata / paper review context / T42\u201d and didn\u2019t find anything saved.\n---\n[user]: I don\u2019t have any saved context in memory about T42 / Margarita Gelata / Matthew Tancik (my memory search returned no hits).\n---\n[signal]: System lacks saved context for key entities, causing repeated context requests.\n---\n[ass...",
+      "confidence": "high",
+      "reasoning": "The system repeatedly reports the same error message about missing context for 'Margarita Gelata/T42/Matthew Tancik' multiple times throughout the session, creating a frustrating user experience with redundant clarifications that don't add value.",
+      "match": false
+    },
+    {
+      "fingerprint_id": "fp1:de8a4c6e42612a19d9f5bfcf8601886a1820c2b85ec7da4040664801f37562de",
+      "signal_class_auto": "ux_friction",
+      "signal_class_claude": "ux_friction",
+      "canonical_summary": "User is repeatedly prompted for the same information about contact channels and message tone.",
+      "session_context": "[user]: What\u2019s the best way to contact Margarita + Matthew (email, DM, Twitter/X, LinkedIn)?\n---\n[assistant]: Two inputs to finalize:\n1) Actual ask to **Matthew** (quick chat / feedback on a draft / pointers / collab / hiring / other).  \n2) Channel to contact him (email / LinkedIn / X/DM).\n---\n[signal]: Assistant repeatedly requests same details about contact channels and ask specifics, indicating potential to streamli...\n---\n[assistant]: Tell me:\n1) Channel for outreach (Margarita + Matthew): **email / LinkedIn / X / iMessage / Mattermost DM**  \n2) Exact ask for Matthew\n---\n[signal]: Assistant repeatedly asks for the same information about channels and exact asks for contacting Margarita and Matthew.\n---\n[user]: If you want, I can draft two quick messages:\n\n1) **Ping to Margarita Gelata (pre-req)** \u2014 asking for the paper-review context you should have before contacting Matthew.\n---\n[assistant]: Then I\u2019ll draft both messages.\n---\n[signal]: Assistant can proactively draft messages once ...",
+      "confidence": "high",
+      "reasoning": "The assistant repeatedly asks for the same information about contact channels and message tone across multiple exchanges, creating a frustrating user experience where the user has to provide the same details multiple times instead of the system remembering or consolidating these requests.",
+      "match": true
+    }
+  ]
+}
