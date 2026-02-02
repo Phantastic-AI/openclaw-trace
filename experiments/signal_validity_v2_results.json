@@ -1,0 +1,136 @@
+{
+  "experiment_id": "validity_20260202_000115",
+  "timestamp": "2026-02-02T00:01:45.840252+00:00",
+  "n_samples": 10,
+  "precision": 0.6,
+  "real_issues": 6,
+  "false_positives": 4,
+  "by_class": {
+    "ux_friction": {
+      "real": 5,
+      "false": 4,
+      "total": 9
+    },
+    "defect": {
+      "real": 1,
+      "false": 0,
+      "total": 1
+    }
+  },
+  "severity_distribution": {
+    "medium": 5,
+    "low": 1
+  },
+  "validations": [
+    {
+      "fingerprint_id": "fp1:611aa93c64bb923d94537b2ecceef9a19a4111db4172998725031060e237c43e",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System repeatedly instructs to read HEARTBEAT.md and follow it strictly, indicating possible lack of automated contex...",
+      "session_context": "[No session IDs found in rollup]",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeated instructions to manually read documentation suggests the system lacks proper automated context loading or integration of its own guidelines, creating unnecessary friction for users who shouldn't need to constantly reference external files.",
+      "severity": "medium",
+      "eval_timestamp": "2026-02-02T00:01:18.347470+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:5b49ab5bd106d0b8ee9e753ee2c44f33067ca5fe3a0c29c7d975b664cc503ce2",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System repeatedly issues 'Cron (error)' messages despite no explicit error details.",
+      "session_context": "[No session IDs found in rollup]",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeated 'Cron (error)' messages without clear error details suggests either a genuine system malfunction or poor error reporting, both of which would frustrate users trying to diagnose issues.",
+      "severity": "medium",
+      "eval_timestamp": "2026-02-02T00:01:21.148173+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:547b740ca3c56f4bcd483714f7564cf67dc7452e1eef7446916a109bfdd8c2fd",
+      "signal_class": "defect",
+      "canonical_summary": "System repeatedly logs 'Cron (error)' despite normal reminder interactions.",
+      "session_context": "[No session IDs found in rollup]",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeated 'Cron (error)' logs during normal reminder interactions suggests a systematic problem with the scheduling system that could lead to missed reminders or degraded functionality, even if users aren't immediately experiencing issues.",
+      "severity": "medium",
+      "eval_timestamp": "2026-02-02T00:01:24.507626+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:ba0261529a45cda9dd9fb56d75108de522d177b235d7466e00806cb54c2392e0",
+      "signal_class": "ux_friction",
+      "canonical_summary": "Repeated 'Reminder needs attention' messages may frustrate users; consider reducing redundancy.",
+      "session_context": "[No session IDs found in rollup]",
+      "is_real_issue": false,
+      "confidence": "medium",
+      "reasoning": "Without any session context or evidence provided, this appears to be a false positive where the system flagged a potential UX issue but has no actual data to support it.",
+      "severity": "none",
+      "eval_timestamp": "2026-02-02T00:01:27.258766+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:b4085999d599eccf01c6f8e0f8365432aed33aaef3f4a72c2241fb58ef8ce502",
+      "signal_class": "ux_friction",
+      "canonical_summary": "User repeatedly receives reminders that 'Reminder needs attention' without clear progress indication.",
+      "session_context": "[No session IDs found in rollup]",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "Repeated vague reminders without progress indication or clear next steps creates confusion and frustration for users, suggesting a UX design flaw in the reminder system.",
+      "severity": "medium",
+      "eval_timestamp": "2026-02-02T00:01:29.809685+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:c8a4cba4d354f8e14fdcf46b3d2eda877400e8271ff812a5e9ca35af19cc5c07",
+      "signal_class": "ux_friction",
+      "canonical_summary": "Repeated user requests to read HEARTBEAT.md and follow it strictly suggest possible dissatisfaction with assistant's...",
+      "session_context": "[No session IDs found in rollup]",
+      "is_real_issue": false,
+      "confidence": "high",
+      "reasoning": "Without any actual session data or evidence, this appears to be a false positive generated from incomplete or missing log analysis. The signal summary is cut off and there's no supporting evidence to validate the claimed user behavior pattern.",
+      "severity": "none",
+      "eval_timestamp": "2026-02-02T00:01:33.316999+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:e40caa0ce87d8e846d4aad4c236520e57ed565e4d9d6cc28ce826bf73aa5ac07",
+      "signal_class": "ux_friction",
+      "canonical_summary": "User likely frustrated by repeated 'Reminder needs attention' prompts without progress.",
+      "session_context": "[No session IDs found in rollup]",
+      "is_real_issue": false,
+      "confidence": "low",
+      "reasoning": "Without any session data or evidence provided, this appears to be a detection system malfunction rather than a real UX issue - there's no actual user behavior to analyze.",
+      "severity": "none",
+      "eval_timestamp": "2026-02-02T00:01:36.414197+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:3b45f4a26ae89423789be873a5867d67ac0a7e3b5ff88c8b71661810fdecfc0e",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System repeatedly reports 'Cron (error)' but continues operation without clear resolution.",
+      "session_context": "[No session IDs found in rollup]",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeated cron errors without resolution suggest either a misconfigured scheduled task or inadequate error handling, which could indicate underlying system instability or failed automation processes.",
+      "severity": "medium",
+      "eval_timestamp": "2026-02-02T00:01:39.479220+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:e2fb71bf296d499597bcfbcdb0c0fbb82b0ff3e2de384a9281164e68d2b9ad17",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System repeatedly reports 'Cron (error)' but continues functioning, indicating unclear error handling.",
+      "session_context": "[No session IDs found in rollup]",
+      "is_real_issue": true,
+      "confidence": "medium",
+      "reasoning": "Repeated 'Cron (error)' messages with continued functioning suggests poor error handling or logging that could mask real issues and confuse users about system health.",
+      "severity": "low",
+      "eval_timestamp": "2026-02-02T00:01:42.258354+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:9563d295296a152a06877b15f99c60c36b08088fb55a7e3449f11e83c2688e4e",
+      "signal_class": "ux_friction",
+      "canonical_summary": "Assistant repeatedly requests clarifications about communication channel and ask type, indicating possible inefficien...",
+      "session_context": "[No session IDs found in rollup]",
+      "is_real_issue": false,
+      "confidence": "low",
+      "reasoning": "Without actual session data or evidence, this appears to be a false positive - the signal summary is incomplete and there's no raw session context to verify the claimed pattern of repeated clarification requests.",
+      "severity": "none",
+      "eval_timestamp": "2026-02-02T00:01:45.339929+00:00"
+    }
+  ]
+}
