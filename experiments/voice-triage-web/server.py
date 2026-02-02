@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 """
 Voice Triage Web Server - Daily + Pipecat
 
@@ -46,7 +47,7 @@ async def create_daily_room() -> dict:
             headers={"Authorization": f"Bearer {DAILY_API_KEY}"},
             json={
                 "properties": {
-                    "exp": int(asyncio.get_event_loop().time()) + 3600,  # 1 hour
+                    "exp": int(int(time.time())) + 3600,  # 1 hour
                     "enable_chat": False,
                     "enable_knocking": False,
                     "start_video_off": True,
@@ -58,6 +59,30 @@ async def create_daily_room() -> dict:
                 error = await resp.text()
                 raise HTTPException(status_code=resp.status, detail=f"Daily API error: {error}")
             return await resp.json()
+
+
+async def get_bot_token(room_name: str) -> str:
+    """Get an owner token for the bot."""
+    if not DAILY_API_KEY:
+        raise HTTPException(status_code=500, detail="DAILY_API_KEY not set")
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            f"{DAILY_API_URL}/meeting-tokens",
+            headers={"Authorization": f"Bearer {DAILY_API_KEY}"},
+            json={
+                "properties": {
+                    "room_name": room_name,
+                    "is_owner": True,
+                    "exp": int(time.time()) + 3600,
+                }
+            }
+        ) as resp:
+            if resp.status != 200:
+                error = await resp.text()
+                raise HTTPException(status_code=resp.status, detail=f"Daily API error: {error}")
+            data = await resp.json()
+            return data["token"]
 
 
 async def get_daily_token(room_name: str) -> str:
@@ -73,7 +98,7 @@ async def get_daily_token(room_name: str) -> str:
                 "properties": {
                     "room_name": room_name,
                     "is_owner": False,
-                    "exp": int(asyncio.get_event_loop().time()) + 3600,
+                    "exp": int(int(time.time())) + 3600,
                 }
             }
         ) as resp:
@@ -128,8 +153,11 @@ async def start_session():
     # Load clusters
     clusters = load_rollup()
     
+    # Get bot token (owner)
+    bot_token = await get_bot_token(room_name)
+    
     # Start bot in background
-    task = asyncio.create_task(run_bot(room_url, clusters))
+    task = asyncio.create_task(run_bot(room_url, bot_token, clusters))
     bot_tasks[room_name] = task
     
     return JSONResponse({

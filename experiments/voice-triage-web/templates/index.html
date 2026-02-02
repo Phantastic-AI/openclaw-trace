@@ -305,14 +305,19 @@
                 });
                 
                 callObject.on('error', (e) => {
-                    setStatus('Error: ' + e.errorMsg, 'error');
+                    console.error('Daily error:', e);
+                    setStatus('Error: ' + (e.errorMsg || e.error || JSON.stringify(e)), 'error');
                     cleanup();
                 });
                 
                 // Join the room
+                console.log('Joining room:', data.room_url);
                 await callObject.join({
                     url: data.room_url,
                     token: data.token,
+                }).catch(err => {
+                    console.error('Join error:', err);
+                    throw err;
                 });
                 
             } catch (err) {

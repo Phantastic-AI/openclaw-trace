@@ -200,58 +200,75 @@ Just respond with the command word."""},
             await self.push_frame(frame, direction)
 
 
-async def run_bot(room_url: str, clusters: list):
+async def run_bot(room_url: str, token: str, clusters: list):
     """Run the Pipecat bot in a Daily room."""
+    print(f"[BOT] Starting bot for room: {room_url}")
+    print(f"[BOT] Clusters to triage: {len(clusters)}")
     
-    state = TriageState(clusters)
-    
-    # Daily transport
-    transport = DailyTransport(
-        room_url,
-        None,  # No token needed for bot
-        "Triage Bot",
-        DailyParams(
-            audio_out_enabled=True,
-            audio_in_enabled=True,
-            vad_enabled=True,
-            vad_analyzer=SileroVADAnalyzer(),
+    try:
+        state = TriageState(clusters)
+        
+        # Daily transport
+        transport = DailyTransport(
+            room_url,
+            token,
+            "Triage Bot",
+            DailyParams(
+                audio_out_enabled=True,
+                audio_in_enabled=True,
+                vad_enabled=True,
+                vad_analyzer=SileroVADAnalyzer(),
+            )
         )
-    )
-    
-    # STT (OpenAI Whisper)
-    stt = OpenAISTTService(
-        api_key=os.environ.get("OPENAI_API_KEY"),
-    )
-    
-    # TTS (OpenAI)
-    tts = OpenAITTSService(
-        api_key=os.environ.get("OPENAI_API_KEY"),
-        voice="nova"
-    )
-    
-    # Our triage processor
-    triage = TriageProcessor(state)
-    
-    # Build pipeline
-    pipeline = Pipeline([
-        transport.input(),
-        stt,
-        triage,
-        tts,
-        transport.output(),
-    ])
-    
-    task = PipelineTask(pipeline, PipelineParams(allow_interruptions=True))
-    
-    @transport.event_handler("on_first_participant_joined")
-    async def on_first_participant(transport, participant):
-        # Greet and start
-        greeting = f"Welcome to voice triage. You have {len(clusters)} signals to review. " + state.format_current()
-        await task.queue_frame(TextFrame(text=greeting))
-    
-    @transport.event_handler("on_participant_left")
-    async def on_participant_left(transport, participant, reason):
-        await task.queue_frame(EndFrame())
-    
-    runner = PipelineRunner()
-    await runner.run(task)
+        
+        # STT (OpenAI Whisper)
+        stt = OpenAISTTService(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+        )
+        
+        # TTS (OpenAI)
+        tts = OpenAITTSService(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+            voice="nova"
+        )
+        
+        # Our triage processor
+        triage = TriageProcessor(state)
+        
+        # Build pipeline
+        pipeline = Pipeline([
+            transport.input(),
+            stt,
+            triage,
+            tts,
+            transport.output(),
+        ])
+        
+        task = PipelineTask(pipeline, params=PipelineParams(allow_interruptions=True))
+        
+        @transport.event_handler("on_participant_joined")
+        async def on_participant_joined(transport, participant):
+            # Skip if it's the bot itself
+            if participant.get("info", {}).get("isLocal"):
+                return
+            print(f"[BOT] Participant joined: {participant}")
+            greeting = f"Welcome to voice triage. You have {len(clusters)} signals to review. " + state.format_current()
+            print(f"[BOT] Sending greeting: {greeting[:50]}...")
+            await task.queue_frame(TextFrame(text=greeting))
+        
+        @transport.event_handler("on_participant_left")
+        async def on_participant_left(transport, participant, reason):
+            if participant.get("info", {}).get("isLocal"):
+                return
+            print(f"[BOT] Participant left: {reason}")
+            await task.queue_frame(EndFrame())
+        
+        print("[BOT] Starting pipeline runner...")
+        runner = PipelineRunner()
+        await runner.run(task)
+        print("[BOT] Pipeline runner finished")
+        
+    except Exception as e:
+        print(f"[BOT] Error: {e}")
+        import traceback
+        traceback.print_exc()
