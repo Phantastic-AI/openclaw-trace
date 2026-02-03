@@ -19,3 +19,5 @@ out_*.jsonl
 
 # OS
 .DS_Store
+triage_audio/
+test_tts.wav
