@@ -4,10 +4,13 @@ import hashlib
 import json
 import math
 import re
+import sqlite3
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+from .embedding_client import openai_embeddings
 
 Json = dict[str, Any]
 
@@ -67,6 +70,17 @@ def _redact(text: str) -> str:
     text = PHONE_RE.sub("[phone]", text)
     text = CARD_RE.sub("[fin_id]", text)
     return text
+
+
+def _normalize_vec(vec: list[float]) -> list[float]:
+    norm = math.sqrt(sum(v * v for v in vec))
+    if norm <= 0:
+        return vec
+    return [v / norm for v in vec]
+
+
+def _dot(a: list[float], b: list[float]) -> float:
+    return sum(x * y for x, y in zip(a, b))
 
 
 def _normalize(text: str) -> str:
@@ -191,6 +205,23 @@ def _classify_kind_v2(item: Json) -> tuple[str, str]:
     return "ux_friction", "other:ux_friction"
 
 
+def _embedding_text(rollup: Json) -> str:
+    summary = (rollup.get("canonical_summary") or "").strip()
+    tags = [t for t, _n in (rollup.get("tags_top") or []) if isinstance(t, str)]
+    kind_counts = rollup.get("kind_v2_counts") or {}
+    kind_top = []
+    if isinstance(kind_counts, dict):
+        kind_top = [k for k, _v in sorted(kind_counts.items(), key=lambda kv: -kv[1])[:2]]
+    parts = []
+    if summary:
+        parts.append(summary)
+    if tags:
+        parts.append("Tags: " + ", ".join(tags[:6]))
+    if kind_top:
+        parts.append("Kinds: " + ", ".join(kind_top))
+    return "\n".join(parts).strip()
+
+
 def _sentiment(item: Json) -> str:
     summary = (item.get("summary") or "").lower()
     if (item.get("kind") or "").lower() == "user_frustration":
@@ -209,10 +240,15 @@ class RollupConfig:
 @dataclass
 class MergeConfig:
     enabled: bool = False
+    method: str = "jaccard"
     auto_jaccard: float = 0.62
     llm_jaccard: float = 0.5
     max_pairs_per_block: int = 5000
     use_llm: bool = False
+    embed_model: str | None = None
+    embed_similarity: float = 0.88
+    embed_llm_similarity: float = 0.8
+    embed_k: int = 8
 
 
 def _jaccard(a: set[str], b: set[str]) -> float:
@@ -263,57 +299,19 @@ def _llm_merge_decision(llm: Any, a: Json, b: Json) -> bool:
     return False
 
 
-def _merge_rollups(rollups: list[Json], cfg: MergeConfig, llm: Any | None) -> list[Json]:
-    if not rollups:
-        return rollups
+def _load_sqlite_vec(conn: sqlite3.Connection):
+    try:
+        import sqlite_vec  # type: ignore
+    except Exception as exc:  # pragma: no cover - depends on optional package
+        raise RuntimeError("sqlite-vec is not installed. Install it with: pip install sqlite-vec") from exc
+    conn.enable_load_extension(True)
+    sqlite_vec.load(conn)
+    if not hasattr(sqlite_vec, "serialize"):
+        raise RuntimeError("sqlite-vec missing serialize() helper; upgrade the package")
+    return sqlite_vec
 
-    # Block by primary kind_v2 for now (cheap; avoids O(n^2) across everything).
-    blocks: dict[str, list[int]] = defaultdict(list)
-    for idx, r in enumerate(rollups):
-        kind_v2_primary = max(r.get("kind_v2_counts", {"ux_friction": 1}), key=r.get("kind_v2_counts", {"ux_friction": 1}).get)
-        blocks[kind_v2_primary].append(idx)
 
-    # Union-find for merges
-    parent = list(range(len(rollups)))
-
-    def find(x: int) -> int:
-        while parent[x] != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-
-    def union(a: int, b: int) -> None:
-        ra, rb = find(a), find(b)
-        if ra != rb:
-            parent[rb] = ra
-
-    for kind_v2, idxs in blocks.items():
-        if len(idxs) < 2:
-            continue
-        pairs = 0
-        for i, idx in enumerate(idxs):
-            a = rollups[idx]
-            tokens_a = set(_tokens(a.get("canonical_summary", "")))
-            for j in range(i + 1, len(idxs)):
-                pairs += 1
-                if pairs > cfg.max_pairs_per_block:
-                    break
-                b = rollups[idxs[j]]
-                tokens_b = set(_tokens(b.get("canonical_summary", "")))
-                sim = _jaccard(tokens_a, tokens_b)
-                if sim >= cfg.auto_jaccard:
-                    union(idx, idxs[j])
-                elif cfg.use_llm and llm is not None and sim >= cfg.llm_jaccard:
-                    if _llm_merge_decision(llm, a, b):
-                        union(idx, idxs[j])
-            if pairs > cfg.max_pairs_per_block:
-                break
-
-    # Build merged groups
-    groups: dict[int, list[Json]] = defaultdict(list)
-    for idx, r in enumerate(rollups):
-        groups[find(idx)].append(r)
-
+def _merge_groups(rollups: list[Json], groups: dict[int, list[Json]]) -> list[Json]:
     merged: list[Json] = []
     for members in groups.values():
         if len(members) == 1:
@@ -370,6 +368,135 @@ def _merge_rollups(rollups: list[Json], cfg: MergeConfig, llm: Any | None) -> li
 
     merged.sort(key=lambda r: (r.get("tier", 9), -float(r.get("score", 0))))
     return merged
+
+
+def _merge_rollups_jaccard(rollups: list[Json], cfg: MergeConfig, llm: Any | None) -> list[Json]:
+    if not rollups:
+        return rollups
+
+    # Block by primary kind_v2 for now (cheap; avoids O(n^2) across everything).
+    blocks: dict[str, list[int]] = defaultdict(list)
+    for idx, r in enumerate(rollups):
+        kind_v2_primary = max(r.get("kind_v2_counts", {"ux_friction": 1}), key=r.get("kind_v2_counts", {"ux_friction": 1}).get)
+        blocks[kind_v2_primary].append(idx)
+
+    parent = list(range(len(rollups)))
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    for kind_v2, idxs in blocks.items():
+        if len(idxs) < 2:
+            continue
+        pairs = 0
+        for i, idx in enumerate(idxs):
+            a = rollups[idx]
+            tokens_a = set(_tokens(a.get("canonical_summary", "")))
+            for j in range(i + 1, len(idxs)):
+                pairs += 1
+                if pairs > cfg.max_pairs_per_block:
+                    break
+                b = rollups[idxs[j]]
+                tokens_b = set(_tokens(b.get("canonical_summary", "")))
+                sim = _jaccard(tokens_a, tokens_b)
+                if sim >= cfg.auto_jaccard:
+                    union(idx, idxs[j])
+                elif cfg.use_llm and llm is not None and sim >= cfg.llm_jaccard:
+                    if _llm_merge_decision(llm, a, b):
+                        union(idx, idxs[j])
+            if pairs > cfg.max_pairs_per_block:
+                break
+
+    groups: dict[int, list[Json]] = defaultdict(list)
+    for idx, r in enumerate(rollups):
+        groups[find(idx)].append(r)
+
+    return _merge_groups(rollups, groups)
+
+
+def _merge_rollups_embeddings(rollups: list[Json], cfg: MergeConfig, llm: Any | None) -> list[Json]:
+    if not rollups:
+        return rollups
+
+    texts = [_embedding_text(r) for r in rollups]
+    embeddings = openai_embeddings(texts, model=cfg.embed_model)
+    if len(embeddings) != len(rollups):
+        raise RuntimeError("Embedding response size mismatch")
+
+    normed = [_normalize_vec(v) for v in embeddings]
+    dim = len(normed[0]) if normed else 0
+    if dim == 0:
+        return rollups
+
+    conn = sqlite3.connect(":memory:")
+    sqlite_vec = _load_sqlite_vec(conn)
+    conn.execute(f"CREATE VIRTUAL TABLE rollup_vecs USING vec0(embedding float[{dim}]);")
+    for idx, vec in enumerate(normed):
+        conn.execute("INSERT INTO rollup_vecs(rowid, embedding) VALUES (?, ?)", (idx + 1, sqlite_vec.serialize(vec)))
+    conn.commit()
+
+    blocks: dict[str, list[int]] = defaultdict(list)
+    block_of: dict[int, str] = {}
+    for idx, r in enumerate(rollups):
+        kind_v2_primary = max(r.get("kind_v2_counts", {"ux_friction": 1}), key=r.get("kind_v2_counts", {"ux_friction": 1}).get)
+        blocks[kind_v2_primary].append(idx)
+        block_of[idx] = kind_v2_primary
+
+    parent = list(range(len(rollups)))
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    for kind_v2, idxs in blocks.items():
+        if len(idxs) < 2:
+            continue
+        k = min(max(cfg.embed_k, 1) + 1, len(idxs))
+        pairs = 0
+        for idx in idxs:
+            vec = normed[idx]
+            rows = conn.execute(
+                "SELECT rowid, distance FROM rollup_vecs WHERE embedding MATCH ? AND k = ?",
+                (sqlite_vec.serialize(vec), k),
+            ).fetchall()
+            for rowid, _dist in rows:
+                j = rowid - 1
+                if j <= idx:
+                    continue
+                if block_of.get(j) != kind_v2:
+                    continue
+                pairs += 1
+                if pairs > cfg.max_pairs_per_block:
+                    break
+                sim = _dot(vec, normed[j])
+                if sim >= cfg.embed_similarity:
+                    union(idx, j)
+                elif cfg.use_llm and llm is not None and sim >= cfg.embed_llm_similarity:
+                    if _llm_merge_decision(llm, rollups[idx], rollups[j]):
+                        union(idx, j)
+            if pairs > cfg.max_pairs_per_block:
+                break
+
+    groups: dict[int, list[Json]] = defaultdict(list)
+    for idx, r in enumerate(rollups):
+        groups[find(idx)].append(r)
+
+    return _merge_groups(rollups, groups)
 
 
 def rollup_signals(*, items: list[Json], cfg: RollupConfig, merge_cfg: MergeConfig | None = None, llm: Any | None = None) -> tuple[Json, list[Json]]:
@@ -448,7 +575,10 @@ def rollup_signals(*, items: list[Json], cfg: RollupConfig, merge_cfg: MergeConf
     rollups.sort(key=lambda r: (r.get("tier", 9), -float(r.get("score", 0))))
 
     if merge_cfg and merge_cfg.enabled:
-        rollups = _merge_rollups(rollups, merge_cfg, llm)
+        if merge_cfg.method == "embeddings":
+            rollups = _merge_rollups_embeddings(rollups, merge_cfg, llm)
+        else:
+            rollups = _merge_rollups_jaccard(rollups, merge_cfg, llm)
 
     summary = {
         "counts": {
@@ -458,6 +588,16 @@ def rollup_signals(*, items: list[Json], cfg: RollupConfig, merge_cfg: MergeConf
         "tiers": Counter(str(r["tier"]) for r in rollups),
     }
     summary["tiers"] = dict(summary["tiers"])
+    if merge_cfg and merge_cfg.enabled:
+        summary["merge"] = {
+            "method": merge_cfg.method,
+            "auto_jaccard": merge_cfg.auto_jaccard,
+            "llm_jaccard": merge_cfg.llm_jaccard,
+            "embed_similarity": merge_cfg.embed_similarity,
+            "embed_llm_similarity": merge_cfg.embed_llm_similarity,
+            "embed_k": merge_cfg.embed_k,
+            "embed_model": merge_cfg.embed_model,
+        }
     return summary, rollups
 
 

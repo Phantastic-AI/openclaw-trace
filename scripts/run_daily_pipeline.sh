@@ -19,6 +19,7 @@ STAMP="$(date +%Y%m%d_%H%M%S)"
 OUT_DIR="${OUT_ROOT}/daily_${STAMP}"
 
 MERGE_SIMILAR="${MERGE_SIMILAR:-1}"
+MERGE_METHOD="${MERGE_METHOD:-jaccard}"
 MERGE_LLM="${MERGE_LLM:-1}"
 TICKET_CREATE="${TICKET_CREATE:-0}"
 
@@ -40,7 +41,7 @@ python -m openclaw_trace.cli mine-signals \
 
 ROLLUP_ARGS=(--in-jsonl "$MINE_JSONL" --out-json "$ROLLUP_JSON" --out-md "$ROLLUP_MD")
 if [ "$MERGE_SIMILAR" = "1" ]; then
-  ROLLUP_ARGS+=(--merge-similar)
+  ROLLUP_ARGS+=(--merge-similar --merge-method "$MERGE_METHOD")
 fi
 if [ "$MERGE_LLM" = "1" ]; then
   ROLLUP_ARGS+=(--merge-llm --llm openai)

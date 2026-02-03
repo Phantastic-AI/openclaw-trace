@@ -179,9 +179,14 @@ def _cmd_rollup_signals(argv: list[str]) -> None:
     ap.add_argument("--max-samples", type=int, default=3)
     ap.add_argument("--max-tags", type=int, default=8)
     ap.add_argument("--merge-similar", action="store_true", help="Merge similar rollups")
+    ap.add_argument("--merge-method", choices=["jaccard", "embeddings"], default="jaccard")
     ap.add_argument("--merge-auto-jaccard", type=float, default=0.62)
     ap.add_argument("--merge-llm-jaccard", type=float, default=0.5)
     ap.add_argument("--merge-llm", action="store_true", help="Use LLM to confirm borderline merges")
+    ap.add_argument("--merge-embed-model", default=None, help="Embedding model (default: OPENAI_EMBED_MODEL or text-embedding-3-small)")
+    ap.add_argument("--merge-embed-sim", type=float, default=0.88, help="Cosine similarity threshold for embedding merges")
+    ap.add_argument("--merge-embed-llm-sim", type=float, default=0.8, help="Cosine similarity threshold for LLM-confirmed merges")
+    ap.add_argument("--merge-embed-k", type=int, default=8, help="Top-k neighbors to consider per rollup")
     ap.add_argument("--llm", choices=["openai", "none"], default="none")
 
     args = ap.parse_args(argv)
@@ -193,9 +198,14 @@ def _cmd_rollup_signals(argv: list[str]) -> None:
 
     merge_cfg = MergeConfig(
         enabled=args.merge_similar,
+        method=args.merge_method,
         auto_jaccard=args.merge_auto_jaccard,
         llm_jaccard=args.merge_llm_jaccard,
         use_llm=args.merge_llm,
+        embed_model=args.merge_embed_model,
+        embed_similarity=args.merge_embed_sim,
+        embed_llm_similarity=args.merge_embed_llm_sim,
+        embed_k=args.merge_embed_k,
     )
     summary, rollups = rollup_signals(items=items, cfg=RollupConfig(max_samples=args.max_samples, max_tags=args.max_tags), merge_cfg=merge_cfg, llm=llm)
 

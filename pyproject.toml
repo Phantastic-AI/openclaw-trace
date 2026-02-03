@@ -9,6 +9,11 @@ dependencies = [
   "httpx>=0.25",
 ]
 
+[project.optional-dependencies]
+embeddings = [
+  "sqlite-vec>=0.1.0",
+]
+
 [project.scripts]
 openclaw-trace = "openclaw_trace.cli:main"
 

@@ -40,6 +40,12 @@ pip install -U pip
 pip install -e .
 ```
 
+Embedding merge support (optional):
+
+```bash
+pip install -e \".[embeddings]\"
+```
+
 ## 1) Mine self-improvement signals
 
 Kinds emitted by the LLM:
@@ -90,6 +96,18 @@ openclaw-trace rollup-signals \
   --out-md rollup.md \
   --merge-similar \
   --merge-llm --llm openai
+```
+
+Embedding merge pass (sqlite-vec + OpenAI embeddings):
+
+```bash
+pip install sqlite-vec
+openclaw-trace rollup-signals \
+  --in-jsonl out_signals.jsonl \
+  --out-json rollup.json \
+  --out-md rollup.md \
+  --merge-similar \
+  --merge-method embeddings
 ```
 
 Rollups include `fingerprint_id` and a lightweight `kind_v2` mapping.
