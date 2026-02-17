@@ -6,26 +6,24 @@ Instructions for AI coding agents (Codex, Claude Code, etc.) working on **opencl
 
 ## Current Work
 
-**Master ticket:** [T328](https://hub.phantastic.ai/T328) — OpenClaw Trace: Full pipeline run on HAL + public submission + MoltPod customer rollout
-**Pipeline ticket:** [T151](https://hub.phantastic.ai/T151) — RLM self-improvement: mine → rank → research → decide
-**Oracle guidance:** The first comment on T145 contains detailed design guidance from the Oracle (GPT-5.2-Pro). Read it before starting.
+**Main ticket:** [T151](https://hub.phantastic.ai/T151) — RLM self-improvement: multi‑phase workflow (signals → tickets → research → experiments → fixes)
+
+**Oracle guidance:** The first comment on T145 contains detailed design guidance from the Oracle (GPT-5.2-Pro). Read it before starting — it's substantial but important.
+
+**Subtasks:** Create subtasks under T145 for discrete pieces of work. Use `parent` transaction:
+```bash
+cat > /home/debian/clawd/home/tmp/subtask.json <<'JSON'
+{"title":"Implement chunking strategy","description":"Per Oracle guidance...","priority":80,"parent":"T145"}
+JSON
+sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.createtask --as admin --input /home/debian/clawd/home/tmp/subtask.json
+```
+
+**Exec plans (ergonomic default):**
+- Template: `.agents/template/PLAN.md` (local copy)
+- Primary: post the plan in the Phorge task (description or comment) and keep it updated there
+- Optional: keep a local working copy in `/home/debian/clawd/home/tmp/plan-<task-id>.md` if drafting; do not rely on `.agents/**` for status
 
 **Project:** `#hal-self-improvement` — https://hub.phantastic.ai/tag/hal-self-improvement/
-
-### Three Planks (priority order)
-1. **Plank 2 (URGENT):** Run full pipeline on HAL sessions — mine, rollup, research briefs, experiments, fixes
-2. **Plank 1 (HIGH):** Submit openclaw-trace publicly for OpenClaw community
-3. **Plank 3 (HIGH):** Run on MoltPod customer pods (~25 users), PII scrub, publish to network
-
-### Key Paths
-| What | Path |
-|------|------|
-| **This repo** | `/home/debian/clawd/home/rlm-session-analyzer/` |
-| **HAL sessions** | `~/.openclaw/agents/main/sessions/` |
-| **Research briefs** | `docs/research-briefs/` |
-| **Brief template** | `docs/research-briefs/BRIEF_TEMPLATE.md` |
-| **Experiments** | `experiments/` |
-| **Pipeline script** | `scripts/run_daily_pipeline.sh` |
 
 ---
 
@@ -36,7 +34,7 @@ Instructions for AI coding agents (Codex, Claude Code, etc.) working on **opencl
 | **Workspace root** | `/home/debian/clawd/` |
 | **Project repos** | `/home/debian/clawd/home/Workspace/` |
 | **Phorge skill** | `/home/debian/clawd/skills/phorge/` |
-| **Socratic tutor skill** | `/home/debian/clawdbot/skills/socratic-tutor/` |
+| **Socratic tutor skill** | `/home/debian/clawdbot/skills/socratic-tutor/SKILL.md` |
 
 ---
 
@@ -48,12 +46,10 @@ Use **Phorge** (not local `.agents/` or beads) for task tracking.
 
 ```bash
 # Search task
-# (Replace <TASK_ID> with the task ID.)
-printf '{"constraints":{"ids":[<TASK_ID>]},"limit":1}' \
+printf '{"constraints":{"ids":[145]},"limit":1}' \
   | sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.search --as admin --input -
 
 # Create task
-mkdir -p /home/debian/clawd/home/tmp
 cat > /home/debian/clawd/home/tmp/task.json <<'JSON'
 {"title":"My task","description":"Details here","priority":80}
 JSON
@@ -61,7 +57,7 @@ sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.createtask -
 
 # Edit task (e.g., close it)
 cat > /home/debian/clawd/home/tmp/edit.json <<'JSON'
-{"objectIdentifier":"<TASK_ID>","transactions":[{"type":"status","value":"resolved"}]}
+{"objectIdentifier":"145","transactions":[{"type":"status","value":"resolved"}]}
 JSON
 sudo /srv/phorge/phorge/bin/conduit call --local --method maniphest.edit --as admin --input /home/debian/clawd/home/tmp/edit.json
 ```
@@ -74,7 +70,6 @@ printf '{"constraints":{"ancestorPaths":["people/"]},"limit":5}' \
   | sudo /srv/phorge/phorge/bin/conduit call --local --method phriction.document.search --as admin --input -
 
 # Create wiki page (parent must exist)
-mkdir -p /home/debian/clawd/home/tmp
 cat > /home/debian/clawd/home/tmp/wiki.json <<'JSON'
 {"slug":"hal/my-page","title":"My Page","content":"Content here"}
 JSON
@@ -94,7 +89,7 @@ sudo /srv/phorge/phorge/bin/conduit call --local --method phriction.edit --as ad
 
 ### Linking
 
-- Tasks: `[T<TASK_ID>](https://hub.phantastic.ai/T<TASK_ID>)`
+- Tasks: `[T145](https://hub.phantastic.ai/T145)`
 - Wiki: `[hal/page](https://hub.phantastic.ai/w/hal/page/)`
 
 ---
@@ -134,51 +129,12 @@ npx -y @steipete/oracle --model gemini-3-pro --file <files> -p "your prompt"
 
 ---
 
-## Cass: Agent History + Context
-
-Use `cass` to inspect prior coding-agent sessions, recover context quickly, and avoid repeating work.
-
-### Health checks
-
-```bash
-cass health
-cass status
-cass stats
-```
-
-### Search and inspect
-
-```bash
-# Search past sessions/messages
-cass search "maniphest.edit subtasks.add" --limit 20
-cass search "docker compose restart frontend backend" --today
-
-# Inspect a specific file from search results
-cass view /path/to/source-file -n 120 -C 8
-
-# Find related sessions for a source file
-cass context /path/to/source-file --limit 8
-```
-
-### Machine-readable mode
-
-```bash
-cass status --json
-cass search "your query" --json --limit 10
-```
-
----
-
 ## Workflow
 
 1. **Check for existing Phorge ticket** before starting work
-2. **Create exec plan** for substantial work:
-   - Template: `.agents/template/PLAN.md` (from template profile)
-   - Save as `.agents/plans/<task-id>/PLAN.md`
-   - Update progress in the plan as you work
+2. **Create exec plan** using `.agents/template/PLAN.md`; post and maintain it in the Phorge ticket (description or comment). Use `/home/debian/clawd/home/tmp/plan-<task-id>.md` only as a draft.
 3. **Commit incrementally** with `T<id>` in commit messages
 4. **Update ticket** when done (status → resolved)
-5. **Upload exec plan** either to ticket, parent ticket or matching doc in Phriction - dependent on task and strictness
 
 ---
 

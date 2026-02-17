@@ -1,4 +1,4 @@
-# Skeleton of a Good ExecPlan
+# Coding Agent Execution Plan Template
 _A living design & execution record for this agent / feature._
 
 This document must be **self-contained**: a new contributor can execute end-to-end without other docs.
