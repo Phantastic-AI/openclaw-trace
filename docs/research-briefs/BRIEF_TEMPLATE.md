@@ -98,7 +98,8 @@ decision: "Act | Experiment | Defer"
 - **Pick one:** Act | Experiment | Defer
 - **Rationale (3-6 bullets max):**
   - <bullet 1>
-- **Roll-out strategy:** <flag-guard, % ramp, direct deploy>
+- **Solution type:** Code patch | Config change | AGENTS.md update | Lobster workflow | Skill update | Hybrid
+- **Roll-out strategy:** <flag-guard, % ramp, direct deploy, `.lobster` file for reuse>
 - **Plan (next 1-3 actions):**
   - <action + owner>
 - **Stop conditions (reversal triggers):**
