@@ -1,5 +1,5 @@
 {
-  "title": "Signal (demo): Improve handling of missing commands and permission errors in logs",
-  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: Improve handling of missing commands and permission errors in logs",
+  "title": "Signal (demo): Assistant should avoid unnecessary tool calls when HEARTBEAT.md content is unchanged.",
+  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: Assistant should avoid unnecessary tool calls when HEARTBEAT.md content is unchanged.",
   "url": "Demo://rollup"
 }

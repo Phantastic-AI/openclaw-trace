@@ -1,5 +1,5 @@
 {
-  "title": "Signal (demo): Repeated 502 errors and missing session keys block progress on task context retrieval",
-  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: Repeated 502 errors and missing session keys block progress on task context retrieval",
+  "title": "Signal (demo): System repeatedly issues 'Cron (error)' messages indicating potential issues with task handling or state management.",
+  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: System repeatedly issues 'Cron (error)' messages indicating potential issues with task handling or state management.",
   "url": "Demo://rollup"
 }

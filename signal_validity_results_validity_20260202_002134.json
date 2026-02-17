@@ -1,0 +1,81 @@
+{
+  "experiment_id": "validity_20260202_002134",
+  "timestamp": "2026-02-02T00:21:50.281464+00:00",
+  "n_samples": 5,
+  "precision": 1.0,
+  "real_issues": 5,
+  "false_positives": 0,
+  "by_class": {
+    "ux_friction": {
+      "real": 4,
+      "false": 0,
+      "total": 4
+    },
+    "defect": {
+      "real": 1,
+      "false": 0,
+      "total": 1
+    }
+  },
+  "severity_distribution": {
+    "medium": 4,
+    "high": 1
+  },
+  "validations": [
+    {
+      "fingerprint_id": "fp1:611aa93c64bb923d94537b2ecceef9a19a4111db4172998725031060e237c43e",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System repeatedly instructs to read HEARTBEAT.md and follow it strictly, indicating possible lack of automated contex...",
+      "session_context": "[toolResult]: # HEARTBEAT.md\n\nGuidance (to avoid nagging):\n- Only report items that are truly new or changed.\n- Do not invent tasks from old chat context.\n- If nothing needs attention, reply HEARTBEAT_OK.\n---\n[signal]: Assistant should consistently read and follow HEARTBEAT.md to avoid unnecessary thinking responses.\n---\n[user]: Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats.\n---\n[signal]: Assistant should strictly follow...",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "The repeated user instructions to 'read HEARTBEAT.md and follow it strictly' combined with system signals about the assistant not handling these instructions properly indicates a clear UX friction pattern where the assistant is not autonomously following established guidelines.",
+      "severity": "medium",
+      "eval_timestamp": "2026-02-02T00:21:37.712221+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:5b49ab5bd106d0b8ee9e753ee2c44f33067ca5fe3a0c29c7d975b664cc503ce2",
+      "signal_class": "ux_friction",
+      "canonical_summary": "System repeatedly issues 'Cron (error)' messages despite no explicit error details.",
+      "session_context": "[user]: Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats.\n---\n[signal]: System repeatedly issues reminders to follow HEARTBEAT.md strictly and avoid inferring or repeating old tasks.\n---\n[assistant]: Then I\u2019ll draft:\n- the ping to **Margarita** for context, and\n- the outreach to **Matthew**.\n---\n[signal]: System can proactively draft messages to Margarita and Matthew once user provides channel and ask details.\n---\n[user]: S...",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "The system is consistently prefixing normal responses with 'Cron (error):' when there are no actual errors occurring, which would confuse users and make them think something is malfunctioning when the system is working normally.",
+      "severity": "medium",
+      "eval_timestamp": "2026-02-02T00:21:40.547673+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:547b740ca3c56f4bcd483714f7564cf67dc7452e1eef7446916a109bfdd8c2fd",
+      "signal_class": "defect",
+      "canonical_summary": "System repeatedly logs 'Cron (error)' despite normal reminder interactions.",
+      "session_context": "[user]: System: [2026-01-31 19:05:25 UTC] Cron (error): Got it.\n---\n[user]: System: [2026-01-31 19:05:34 UTC] Cron (error): Got it.\n---\n[signal]: System repeatedly issues 'Cron (error)' messages despite no explicit error details.\n---\n[user]: Cron (error): I checked memory for anything on \u201cMargarita Gelata\u201d / prior paper-review context and didn\u2019t find any relevant notes.\n---\n[user]: Cron (error): I don\u2019t have any prior notes on \u201cMargarita Gelata\u201d / the paper-review context in memory (I checked).\n...",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "The system is incorrectly labeling normal conversational responses and reminders as 'Cron (error)' when there's no actual error occurring, which would confuse users about the system's status.",
+      "severity": "medium",
+      "eval_timestamp": "2026-02-02T00:21:43.542558+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:ba0261529a45cda9dd9fb56d75108de522d177b235d7466e00806cb54c2392e0",
+      "signal_class": "ux_friction",
+      "canonical_summary": "Repeated 'Reminder needs attention' messages may frustrate users; consider reducing redundancy.",
+      "session_context": "[user]: Cron (error): I checked memory for anything on \u201cMargarita Gelata\u201d / prior paper-review context and didn\u2019t find any relevant notes.\n---\n[user]: Cron (error): I don\u2019t have any prior notes on \u201cMargarita Gelata\u201d / the paper-review context in memory (I checked).\n---\n[signal]: Repeated 'Cron (error)' messages may cause user confusion or frustration about system state.\n---\n[assistant]: Reminder needs attention.\n---\n[signal]: User repeatedly receives reminders that 'Reminder needs attention' wit...",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "The AI repeated the exact same 'Reminder needs attention' message 6 times without making progress or adapting its approach, which would clearly frustrate users and indicates poor conversation management.",
+      "severity": "medium",
+      "eval_timestamp": "2026-02-02T00:21:46.709083+00:00"
+    },
+    {
+      "fingerprint_id": "fp1:b4085999d599eccf01c6f8e0f8365432aed33aaef3f4a72c2241fb58ef8ce502",
+      "signal_class": "ux_friction",
+      "canonical_summary": "User repeatedly receives reminders that 'Reminder needs attention' without clear progress indication.",
+      "session_context": "[assistant]: Reminder needs attention.\n\nTell me:\n- Preferred channel for Matthew\n---\n[assistant]: Reminder needs attention.\n\nPaste Margarita\u2019s context when you have it, and tell me which channel you want for Matthew\n---\n[signal]: User repeatedly receives reminders to provide contact channels and context, indicating possible friction or delay in...\n---\n[assistant]: Reminder needs attention.\n---\n[signal]: User repeatedly receives reminders that 'Reminder needs attention' without clear progress ind...",
+      "is_real_issue": true,
+      "confidence": "high",
+      "reasoning": "The system is stuck in a loop repeatedly asking for the same information without acknowledging user responses or making progress, creating clear user frustration and indicating a functional bug.",
+      "severity": "high",
+      "eval_timestamp": "2026-02-02T00:21:49.781197+00:00"
+    }
+  ]
+}

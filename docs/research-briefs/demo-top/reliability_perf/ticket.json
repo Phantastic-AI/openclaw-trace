@@ -1,5 +1,5 @@
 {
-  "title": "Signal (demo): User repeatedly hits ChatGPT usage limit (pro plan) causing errors and no assistant response.",
-  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: User repeatedly hits ChatGPT usage limit (pro plan) causing errors and no assistant response.",
+  "title": "Signal (demo): Cron Gateway API is not responding, causing timeout errors in cron.list and subsequent calls.",
+  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: Cron Gateway API is not responding, causing timeout errors in cron.list and subsequent calls.",
   "url": "Demo://rollup"
 }

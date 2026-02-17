@@ -1,5 +1,5 @@
 {
-  "title": "Signal (demo): Proactively notify system maintainers about the runaway cron job causing repeated errors.",
-  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: Proactively notify system maintainers about the runaway cron job causing repeated errors.",
+  "title": "Signal (demo): System can proactively draft outreach messages once user provides contact channels and context.",
+  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: System can proactively draft outreach messages once user provides contact channels and context.",
   "url": "Demo://rollup"
 }

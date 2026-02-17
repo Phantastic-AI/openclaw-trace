@@ -1,121 +1,94 @@
-Now I have all the evidence. Let me review what is supported vs. unsupported based on the critic notes:
-
-**Supported by evidence:**
-- 4 items, 1 session (context.md:11)
-- max_severity: high (context.md:9)
-- score: 6.909 (context.md:10)
-- tier: 1, reasons: incident, severity:high (context.md:8)
-- 6 verbatim error messages with countdown minutes 73-81 (context.md:32-37)
-- Scoring formula from rollup_signals.py:139-148
-- Tier definitions from rollup_signals.py:120-127
-- Severity scale from rollup_signals.py:14
-- Item summaries mentioning "no assistant response" appear in 2 of 4 items (context.md:19,25)
-- All 4 items tagged 'incident' (context.md:13)
-- kind_v2_counts: reliability_perf (4) (context.md:12)
-
-**NOT supported (per critic notes):**
-- Owner/DRI assignments, due dates, version/date stamping, acceptance-checklist status
-- Decision needed, proposed next steps, options A/B/C, success metrics with specific targets
-- HTTP/API specifics (429, x-ratelimit headers, /v1/chat/completions, etc.)
-- Claims messages are "client-side"
-- Claim that "3 of 4" mention no assistant response (only 2 of 4 do)
-- Claims about empty/error text returned by assistant
-- Interpretation that 81→73 represents sequential occurrences or 8-minute delta
-- Inferred retry intervals
-
-Now I'll output the revised brief:
-
----
-
-# Research Brief (v1)
+# Research Brief Template (v1)
 
 Origin: Demo://rollup
 
 ## 0) Header
-- **Ticket:** Demo - ChatGPT Pro plan usage-limit errors ([Demo://rollup](Demo://rollup))
+- **Ticket:** Unknown - Signal (demo): User repeatedly hits ChatGPT usage limit (pro plan) causing errors and no assistant response (Demo://rollup)
 - **Owner (DRI):** Unknown
-- **Date / version:** Unknown
-- **Incident summary:** 4 error items across 1 session. User received repeated messages: *"You have hit your ChatGPT usage limit (pro plan). Try again in ~N min"* with countdown values 73, 75, 76, 78, 80, 81 min observed across 6 verbatim quotes ([context.md:32-37](docs/research-briefs/demo-top/reliability_perf/context.md)). 2 of 4 item summaries note "no assistant response" ([context.md:19,25](docs/research-briefs/demo-top/reliability_perf/context.md)).
-- **Decision needed:** Unknown
-- **Proposed next step:** Unknown
+- **Date / version:** 2026-02-01, v1
+- **Decision needed:** Decide whether to prioritize a usage‑limit fix or a Cron Gateway outage fix given conflicting evidence.
+- **Proposed next step:** Experiment
 
 ## 1) Problem + target outcome
 - **Problem (observable):**
-  - User cannot proceed when ChatGPT Pro plan quota is exhausted; 4 error items observed in 1 session ([context.md:11](docs/research-briefs/demo-top/reliability_perf/context.md))
-  - 2 of 4 item summaries explicitly note "no assistant response" ([context.md:19,25](docs/research-briefs/demo-top/reliability_perf/context.md))
-  - Countdown times 73–81 minutes observed in 6 verbatim error messages ([context.md:32-37](docs/research-briefs/demo-top/reliability_perf/context.md))
-- **Success metrics:** Unknown
-- **Non-goals / out of scope:** Unknown
+  - Ticket summary reports users repeatedly hit ChatGPT usage limit (pro plan), causing errors and no assistant response.
+  - Context evidence shows Cron Gateway `cron.*` API not responding, causing timeouts in `cron.list` and subsequent calls.
+- **Success metrics (1-3):**
+  - Unknown
+- **Non-goals / out of scope (1-3):**
+  - Unknown
 
 ## 2) Evidence snapshot
-- **Current behavior:**
-  - User receives rate-limit error messages (verbatim: `"You have hit your ChatGPT usage limit (pro plan). Try again in ~X min."` — [context.md:32-37](docs/research-briefs/demo-top/reliability_perf/context.md))
-  - 2 of 4 item summaries note "no assistant response" ([context.md:19,25](docs/research-briefs/demo-top/reliability_perf/context.md))
-  - 4 items within session `sig1:8e8fdcd5bc14a6608991ff1c391ccf57630a9e595de6c98710ae9b8d8dd0fc76` ([context.md:7](docs/research-briefs/demo-top/reliability_perf/context.md))
-  - Countdown values: 73, 75, 76, 78, 80, 81 minutes (6 verbatim error messages; [context.md:32-37](docs/research-briefs/demo-top/reliability_perf/context.md))
-
-- **Data points:**
-  - count_items: 4, count_sessions: 1 ([context.md:11](docs/research-briefs/demo-top/reliability_perf/context.md))
-  - max_severity: high (scale: low=1, medium=2, high=3, critical=4; [rollup_signals.py:14](openclaw_trace/rollup_signals.py))
-  - score: 6.909 (formula: `log1p(count_items) + severity_rank + bonuses` where severity high=3, incident tag adds +2.0, error kind adds +0.3; [rollup_signals.py:139-148](openclaw_trace/rollup_signals.py))
-  - tier: 1 (definition: incident tag present OR severity ≥ high; [rollup_signals.py:120-127](openclaw_trace/rollup_signals.py))
-  - Per-item severity: `sha256:c04f18...` high, `sha256:5a2228...` high, `sha256:18d832...` medium, `sha256:6a9b77...` high ([context.md:17-28](docs/research-briefs/demo-top/reliability_perf/context.md))
-  - All 4 items tagged 'incident' ([context.md:13](docs/research-briefs/demo-top/reliability_perf/context.md))
-  - kind_v2_counts: reliability_perf (4) ([context.md:12](docs/research-briefs/demo-top/reliability_perf/context.md))
-
-- **Links:**
-  - [context.md](docs/research-briefs/demo-top/reliability_perf/context.md)
-  - [rollup_signals.py](openclaw_trace/rollup_signals.py)
+- **Current behavior (2-5 bullets):**
+  - System error message indicates Gateway `cron.*` API not responding and timing out from the tools layer.
+  - Rollup canonical summary matches Cron Gateway API outage causing timeouts in `cron.list` and subsequent calls.
+  - Ticket summary states usage‑limit errors with no assistant response.
+- **Data points (3-8 bullets max):**
+  - tier: 1 (reasons: incident, severity:high)
+  - max_severity: high
+  - score: 5.993147180559945
+  - count_items: 1; count_sessions: 1
+  - fingerprint_id: fp1:e9bb39f9e3311c23169a3f5fcface363e4b3e2c7a7c4be7ed8a612730e4b594d
+  - signature_id: sig1:eca75583aac9302ef056841493779892c1f15b37602702970cd455bbdc3662d7
+  - kind_v2_counts: {'reliability_perf': 1}; tags_top: [['incident', 1]]
+- **Repro steps (if applicable, 2-6 bullets):**
+  - Unknown
+- **Links:** Demo://rollup; docs/research-briefs/demo-top/reliability_perf/context.md
 
 ## 3) Root Cause Analysis (RCA)
-- **Suspected root cause(s):**
-  - **Cause 1:** Vendor quota or rate-limit reached — verbatim error text states "usage limit (pro plan)"
+- **Suspected root cause(s) (1-3, falsifiable):**
+  - Cron Gateway `cron.*` API outage causes `cron.list` and subsequent calls to time out.
+  - Usage‑limit enforcement for ChatGPT (pro plan) causes errors and no assistant response.
+- **Contributing factors (2-6):**
+  - Single item/session in rollup limits evidence breadth.
+  - Unknown
+- **Evidence mapping (per cause):**
+  - **Evidence FOR:** Cron Gateway outage is stated in canonical summary, sample item, and system error message; usage‑limit errors are stated in the ticket summary.
+  - **Evidence AGAINST / gaps:** No usage‑limit evidence in context; no Cron Gateway evidence in ticket; only one session in rollup.
+- **Confidence (per cause):** Cron Gateway: Medium; Usage‑limit: Low
+- **Validation tests (1-5):**
+  - Inspect tool‑layer logs for the cited session around 2026-01-31 16:02 UTC -> if Cron Gateway outage is true, `cron.*` timeouts should spike -> if false, `cron.*` should succeed.
+  - Check the same session for usage‑limit error codes/messages -> if usage‑limit root cause is true, limit errors should appear -> if false, they should be absent.
+  - Compare additional sessions in the same rollup class -> if systemic, similar timeouts should appear -> if false, issue is isolated or misclassified.
+  - Validate ticket summary against raw trace context -> if true, usage‑limit errors should be observable -> if false, ticket is misrouted or outdated.
+  - Confirm owner and success criteria from ticket metadata/triage notes -> if present, replace Unknown -> if absent, keep Unknown and escalate.
 
-- **Contributing factors:**
-  - 4 errors in single session ([context.md:11](docs/research-briefs/demo-top/reliability_perf/context.md))
-  - Unknown: HTTP status codes, `x-ratelimit-*` headers not captured in available evidence
-  - Unknown: Whether retry/backoff logic or fallback model exists
-  - Unknown: Whether messages originate from client-side or server-side
+## 4) Options (competing paths)
+- **Option A (Act):** Add robust handling for `cron.*` timeouts to avoid no‑response errors and surface a clear failure mode.
+  - Impact: Med
+  - Cost/complexity: Med
+  - Risk + rollback/containment: Low risk; revert if it masks root cause.
+  - Time-to-signal: medium
+- **Option B (Experiment):** Validate which error mode occurred (Cron Gateway outage vs usage‑limit) using the cited session evidence.
+  - Impact: High
+  - Cost/complexity: Low
+  - Risk + rollback/containment: Low risk; read‑only investigation.
+  - Time-to-signal: fast
+- **Option C (Defer):** Wait for more signals or sessions to disambiguate root cause.
+  - Impact: Low
+  - Cost/complexity: Low
+  - Risk + rollback/containment: High risk of leaving incident unresolved.
+  - Time-to-signal: slow
 
-- **Evidence mapping:**
-  - **Cause 1 — Evidence FOR:**
-    - 6 verbatim error messages state "usage limit (pro plan)" ([context.md:32-37](docs/research-briefs/demo-top/reliability_perf/context.md))
-    - All 4 items tagged 'incident' with kind `reliability_perf` ([context.md:12-13](docs/research-briefs/demo-top/reliability_perf/context.md))
-  - **Cause 1 — Gaps:**
-    - No HTTP status codes or rate-limit headers captured
-    - Plan type stated in error text but not independently verified
-    - Unknown whether quota-based or sliding-window rate limit
+## 5) Recommendation (single choice)
+- **Pick one:** Experiment
+- **Rationale (3-6 bullets max):**
+  - Evidence conflicts between ticket summary and rollup context.
+  - Only one session/item is available, limiting confidence.
+  - Validation is fast and low‑risk.
+  - Severity is marked high, so clarity is needed before acting.
+- **Plan (next 1-3 actions):**
+  - Validate `cron.*` timeout evidence in the cited session -> Owner: Unknown
+  - Verify presence/absence of usage‑limit errors in the same session -> Owner: Unknown
+  - Update the ticket summary to reflect confirmed root cause -> Owner: Unknown
+- **Stop conditions (reversal triggers):**
+  - If usage‑limit errors are confirmed and `cron.*` timeouts are absent, pivot to usage‑limit remediation.
+  - If `cron.*` outages are confirmed and usage‑limit errors are absent, proceed with reliability fixes.
 
-- **Confidence:**
-  - Cause 1: **Medium** — verbatim error text suggests quota exhaustion; HTTP-level confirmation absent
+## 6) Appendix (optional)
+- 2026-01-31 16:02:10 UTC: System message reports `cron.*` API not responding and timeouts.
 
-- **Validation tests:** Unknown
+---
 
-## 4) Options
-Unknown — no options analysis in evidence.
-
-## 5) Recommendation
-Unknown — no recommendation in evidence.
-
-## 6) Appendix
-
-**Verbatim error messages** ([context.md:32-37](docs/research-briefs/demo-top/reliability_perf/context.md)):
-- "You have hit your ChatGPT usage limit (pro plan). Try again in ~81 min."
-- "You have hit your ChatGPT usage limit (pro plan). Try again in ~80 min."
-- "You have hit your ChatGPT usage limit (pro plan). Try again in ~78 min."
-- "You have hit your ChatGPT usage limit (pro plan). Try again in ~76 min."
-- "You have hit your ChatGPT usage limit (pro plan). Try again in ~75 min."
-- "You have hit your ChatGPT usage limit (pro plan). Try again in ~73 min."
-
-**Observation:** Countdown values (81, 80, 78, 76, 75, 73) appear in 6 messages. The ordering, timing relationship, and whether these represent sequential occurrences is unknown — no timestamps are captured.
-
-## Acceptance checklist
-- [x] Ticket link: Demo://rollup (placeholder)
-- [ ] Decision statement: Unknown
-- [x] Evidence: 6 verbatim quotes, 4 items with severity ratings, score/tier present
-- [x] RCA with confidence: Cause 1 = Medium confidence
-- [ ] ≥2 options: Unknown
-- [ ] Explicit recommendation: Unknown
-- [ ] Next-step owner: Unknown
-
-**Status: NOT ACCEPTED** — missing decision statement, options, recommendation, and owner assignments.
+## Acceptance checklist (one line)
+ACCEPT IF: ticket link + decision statement + evidence + RCA (confidence + tests) + >=2 options + explicit recommendation + next-step owner.

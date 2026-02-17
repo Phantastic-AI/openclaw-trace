@@ -1,128 +1,92 @@
-Now I have all the evidence needed to write the revised brief. Let me create the revised version that removes all unsupported claims.
+# Research Brief Template (v1)
 
-# Research Brief (v1)
-
-**Origin:** Demo://rollup
-
----
+Origin: Demo://rollup
 
 ## 0) Header
-
-- **Ticket:** Demo — HEARTBEAT.md handling improvement (Demo://rollup)
+- **Ticket:** Unknown - Signal (demo): System should better handle dependency on HEARTBEAT.md and avoid repeated error messages if no tasks need attention. (Demo://rollup)
 - **Owner (DRI):** Unknown
-- **Date / version:** Unknown
-- **Decision needed:** Should we investigate how the system handles HEARTBEAT.md when no tasks need attention?
-- **Proposed next step:** Investigate current behavior when HEARTBEAT.md is missing, empty, or contains no actionable tasks.
-
----
+- **Date / version:** 2026-02-01, v1
+- **Decision needed:** Decide whether to implement handling for HEARTBEAT.md and suppress repeated Cron error messages when no tasks need attention.
+- **Proposed next step:** Act
 
 ## 1) Problem + target outcome
-
-**Problem (observable):**
-- Improvement suggestion: "System should better handle dependency on HEARTBEAT.md and avoid repeated error messages if no tasks need attention" (source: rollup canonical_summary)
-- Spec states: "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. If nothing needs attention, reply HEARTBEAT_OK" (source: context.md evidence quote)
-- Specific failure mode unknown — no log excerpts or error messages provided in evidence
-
-**Success metrics:**
-- Unknown — requires investigation to define measurable criteria
-
-**Non-goals / out of scope:**
-- Redesigning HEARTBEAT.md file format
-- Adding retry/backoff logic for file-read operations
-
----
+- **Problem (observable):**
+  - System emits a Cron error instructing to read HEARTBEAT.md and reply HEARTBEAT_OK when nothing needs attention.
+  - Assistant responds with unrelated “Reminder needs attention” prompts and the error message repeats.
+- **Success metrics (1-3):**
+  - Unknown
+- **Non-goals / out of scope (1-3):**
+  - Unknown
 
 ## 2) Evidence snapshot
-
-**Current behavior:**
-- Per spec: "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly."
-- Per spec: "If nothing needs attention, reply HEARTBEAT_OK."
-- Improvement suggestion indicates system should "avoid repeated error messages if no tasks need attention" (exact error text unknown)
-
-**Data points:**
-- Count: 1 item across 1 session (source: rollup summary)
-- Severity: low (source: rollup summary)
-- Tier: 1, reasons: incident (source: rollup summary)
-- Score: 3.69 (source: rollup summary)
-- Kind: process_tooling (source: kind_v2_counts)
-- Tags: process (1), incident (1) (source: tags_top)
-
-**Repro steps:**
-- Unknown — no reproduction steps documented
-
-**Links:** docs/research-briefs/demo-top/process_tooling/context.md
-
----
+- **Current behavior (2-5 bullets):**
+  - Cron error message says to read HEARTBEAT.md if it exists and reply HEARTBEAT_OK if nothing needs attention.
+  - Assistant responds with “Reminder needs attention” prompts instead of the HEARTBEAT_OK flow.
+  - The same dependency chain error is emitted again in the same session.
+- **Data points (3-8 bullets max):**
+  - tier: 1 (reasons include “incident”)
+  - max_severity: low
+  - score: 3.6931471805599454
+  - count_items: 1
+  - count_sessions: 1
+  - tags_top: process (1), incident (1)
+- **Repro steps (if applicable, 2-6 bullets):**
+  - Unknown
+- **Links:** Demo://rollup; docs/research-briefs/demo-top/process_tooling/context.md
 
 ## 3) Root Cause Analysis (RCA)
+- **Suspected root cause(s) (1-3, falsifiable):**
+  - Missing or ineffective gating that enforces “read HEARTBEAT.md → reply HEARTBEAT_OK if nothing needs attention.”
+  - No suppression for repeated Cron error messages within the same session.
+- **Contributing factors (2-6):**
+  - Cron error is triggered after a failed memory lookup for prior notes.
+  - Assistant replies with a reminder prompt rather than acknowledging the HEARTBEAT.md instruction.
+  - Unknown whether HEARTBEAT.md exists or what it contains during the session.
+- **Evidence mapping (per cause):**
+  - **Evidence FOR:** Cron error explicitly instructs the HEARTBEAT.md behavior; assistant reply does not follow it; the error repeats.
+  - **Evidence AGAINST / gaps:** No code pointers or logs; HEARTBEAT.md presence and contents not shown.
+- **Confidence (per cause):** Low
+- **Validation tests (1-5):**
+  - Run a replay where HEARTBEAT.md is absent and no tasks need attention → expect a single HEARTBEAT_OK response if true; repeated error prompts if false.
+  - Run a replay where HEARTBEAT.md exists with no tasks → expect HEARTBEAT_OK without reminder prompts if true; reminders if false.
+  - Confirm DRI in task system → expect a named owner if true; remains Unknown if false.
+  - Define success metrics with stakeholders → expect 1–3 measurable criteria if true; still Unknown if false.
+  - Capture repro steps from a controlled session → expect consistent steps if true; still Unknown if false.
 
-**Suspected root cause(s):**
-- Unknown — no code, logs, or detailed error information available to determine root cause
+## 4) Options (competing paths)
+- **Option A (Act):** Enforce HEARTBEAT.md handling and suppress repeated Cron errors when no tasks need attention.
+  - Impact: Med
+  - Cost/complexity: Low
+  - Risk + rollback/containment: Risk of suppressing legitimate errors; rollback by disabling suppression.
+  - Time-to-signal: fast
+- **Option B (Experiment):** Add instrumentation and run a controlled replay to quantify error repetition and compliance with HEARTBEAT.md.
+  - Impact: Med
+  - Cost/complexity: Low
+  - Risk + rollback/containment: Low risk; remove instrumentation if noisy.
+  - Time-to-signal: medium
+- **Option C (Defer):** Wait for more incidents before changing behavior.
+  - Impact: Low
+  - Cost/complexity: Low
+  - Risk + rollback/containment: Continued repeated errors; no rollback needed.
+  - Time-to-signal: slow
 
-**Contributing factors:**
-- Unknown — insufficient evidence to identify contributing factors
+## 5) Recommendation (single choice)
+- **Pick one:** Act
+- **Rationale (3-6 bullets max):**
+  - Evidence shows explicit HEARTBEAT.md instruction is not followed.
+  - Repeated error message occurs in the same session.
+  - Proposed change is low cost and directly targets the observed behavior.
+- **Plan (next 1-3 actions):**
+  - Implement a guard to read HEARTBEAT.md if it exists and reply HEARTBEAT_OK when nothing needs attention (Owner: Unknown).
+  - Add suppression for repeated Cron error messages in a single session (Owner: Unknown).
+  - Add a replay-based regression check for the HEARTBEAT_OK path (Owner: Unknown).
+- **Stop conditions (reversal triggers):**
+  - Legitimate reminder flows are suppressed or tasks in HEARTBEAT.md are skipped.
 
-**Confidence:**
-- Unable to assess — no evidence available for root cause determination
-
-**Validation tests:**
-- Unknown — specific tests cannot be defined without understanding current failure mode
-
----
-
-## 4) Options
-
-**Option A (Investigate):** Gather additional evidence by examining logs, code, and actual system behavior when HEARTBEAT.md is missing or contains no tasks.
-- Impact: Unknown
-- Cost/complexity: Unknown
-- Risk: Low — investigation only
-
-**Option B (Defer):** Wait for additional incident data; current evidence is 1 session, low severity.
-- Impact: Unknown — log noise may persist if issue is systemic
-- Cost/complexity: None
-- Risk: Unknown
-
----
-
-## 5) Recommendation
-
-- **Pick one:** Investigate
-- **Rationale:**
-  - Root cause unknown — no logs, error messages, or code paths identified
-  - Single session with low severity; additional evidence needed before implementation
-  - Cannot define solution without understanding actual failure mode
-
-**Plan (next actions):**
-- Gather logs or error messages related to HEARTBEAT.md handling — Owner: Unknown
-- Identify code path that handles HEARTBEAT.md — Owner: Unknown
-- Define concrete failure scenarios based on investigation findings — Owner: Unknown
-
-**Stop conditions:**
-- Investigation reveals no actual issue — close without code change
-- Investigation reveals specific failure mode — proceed to define solution
-
----
-
-## 6) Appendix
-
-**Spec excerpt (verbatim from context.md):**
-> Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.
-
-**Signal identifiers:**
-- Fingerprint: fp1:6880fa3c815d2b5255a11923cc1ae4353e6a6124538ac0c9a87c4c35ee70b63e
-- Signature: sig1:174bf78a4d6c0016bce2e061d844eab80dd775a205c8181df9fa7a3a13b278de
-- Item ID: sha256:7dec3514af1a2707384d15a89a7597d11d130a2a8693e3d5528d07f3da5f2cba
+## 6) Appendix (optional)
+- 2026-01-31: Cron error instructs HEARTBEAT.md handling; assistant replies with reminder prompt; Cron error repeats.
 
 ---
 
-## Acceptance checklist
-
-- ⚠️ **Ticket link:** Demo://rollup (placeholder, not a valid URL)
-- ✅ **Decision statement:** Present — "Should we investigate how the system handles HEARTBEAT.md when no tasks need attention?"
-- ✅ **Evidence:** Rollup data present with fingerprint, counts, severity, score, and spec excerpt
-- ⚠️ **RCA:** Cannot complete — insufficient evidence for root cause analysis
-- ✅ **>=2 options:** Two options provided (Investigate, Defer)
-- ✅ **Recommendation:** Investigate, with rationale
-- ⚠️ **Next-step owner:** Listed as "Unknown"
-
-**VERDICT:** Incomplete — This brief requires investigation to gather additional evidence before a complete analysis can be performed. Key gaps: no log excerpts, no error message text, no code references, no owner assigned.
+## Acceptance checklist (one line)
+ACCEPT IF: ticket link + decision statement + evidence + RCA (confidence + tests) + >=2 options + explicit recommendation + next-step owner.

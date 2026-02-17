@@ -1,5 +1,5 @@
 {
-  "title": "Signal (demo): HTTP Conduit calls with api.token are consistently broken for search/read methods",
-  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: HTTP Conduit calls with api.token are consistently broken for search/read methods",
+  "title": "Signal (demo): System repeatedly logs 'Cron (error)' despite normal reminder interactions.",
+  "description": "Auto-generated demo ticket from rollup. See context file for evidence.\nSummary: System repeatedly logs 'Cron (error)' despite normal reminder interactions.",
   "url": "Demo://rollup"
 }

@@ -1,150 +1,93 @@
-Now I have the actual evidence. The context file shows only:
-- Two error strings: "ERR-INVALID-SESSION" and "502 Bad Gateway"
-- 1 item in 1 session
-- Score: 5.89
-- Tags: user_frustration, incident, api_failure
-- Tier 1 with reasons: incident, severity:high
+# Research Brief Template (v1)
 
-Based on the critic notes, I need to revise the brief to remove or mark unsupported claims. Here is the revised brief:
-
----
-
-# Research Brief (v1)
-
-Origin: Demo://rollup
+Origin: `Demo://rollup`
 
 ## 0) Header
-- **Ticket:** Unknown (Demo://rollup is a placeholder, not a valid ticket URL)
-- **Owner (DRI):** TBD
-- **Date / version:** 2026-02-01, v1
-- **Decision needed:** Determine next steps for investigating 502 and session validation errors observed in task context retrieval workflow
-- **Proposed next step:** Experiment — Collect additional data to understand error frequency and conditions (owner: TBD, timeframe: TBD). Success criteria: Establish baseline error rate and identify reproduction conditions.
+- **Ticket:** Unknown - Signal (demo): System repeatedly issues 'Cron (error)' messages indicating potential issues with task handling or state management. (`Demo://rollup`)
+- **Owner (DRI):** Unknown
+- **Date / version:** Unknown, v1
+- **Decision needed:** Decide how to address recurring 'Cron (error)' messages tied to task handling/state management.
+- **Proposed next step:** Experiment
 
 ## 1) Problem + target outcome
 - **Problem (observable):**
-  - Two error strings observed in evidence: "502 Bad Gateway" and "ERR-INVALID-SESSION"
-  - Rollup summary describes: "Repeated 502 errors and missing session keys block progress on task context retrieval"
-  - Evidence count: 1 item across 1 session
-  - Severity classified as "high" per rollup; tier 1 with reasons: incident, severity:high
-  - Tags assigned: user_frustration (1), incident (1), api_failure (1)
-
+  - System repeatedly issues 'Cron (error)' messages indicating potential issues with task handling or state management.
+  - Multiple 'Cron (error)' entries appear in a single session with differing acknowledgements (e.g., "Got it", "Noted", "I checked memory...").
 - **Success metrics (1-3):**
-  - Unknown — insufficient baseline data to define quantitative targets
-
+  - Unknown
 - **Non-goals / out of scope (1-3):**
-  - TBD pending further investigation
+  - Unknown
 
 ## 2) Evidence snapshot
 - **Current behavior (2-5 bullets):**
-  - Error string "502 Bad Gateway" present in evidence
-  - Error string "ERR-INVALID-SESSION" present in evidence
-  - Context unknown — no workflow steps, timestamps, or request details captured
-
+  - In one session (count_sessions: 1), 'Cron (error)' messages appear repeatedly around 19:17-19:25 UTC on 2026-01-31.
+  - The assistant responds with "Reminder needs attention" prompts after each 'Cron (error)' system line in the trace snippets.
+  - The rollup is tagged as incident/error with medium max severity.
 - **Data points (3-8 bullets max):**
-  - Count: 1 item across 1 session (per rollup summary in context.md)
-  - Tier: 1 — reasons: incident, severity:high (per rollup classification)
-  - Score: 5.89 (per rollup; meaning of score not defined in evidence)
-  - Tags: user_frustration (1), incident (1), api_failure (1) (per tags_top in rollup)
-  - Kind: ux_friction (per kind_v2_counts)
-  - Fingerprint: fp1:eca9b274a5cbc2230995a5ddf93652a15552a8a9218347b324f5b51f68fe8614
-  - Signature: sig1:3fe2820a97e430cb282424ed8370886cdee513337efafd9e56864357061e001e
-  - Item ID: sha256:16bb441e21de10d8345aebb4afd0d6e2374fa3dae20f7e5e4fb51dc2fd32fd3a
-
+  - count_items: 2; count_sessions: 1
+  - max_severity: medium; tier: 1 (reasons=['incident'])
+  - score: 5.098612288668109
+  - kind_v2_counts: {'ux_friction': 2}
+  - tags_top: [['error', 2], ['incident', 2]]
+  - fingerprint_id: `fp1:3d13a00f23c7165d5d2f9382972dd02dddfdbf9d6009b6cd9ea657fa618eb18b`
+  - signature_id: `sig1:4fcf1ed4230f6a331d9284ac845d4aa5477499b5ab1105536fa88f06f361df96`
 - **Repro steps (if applicable, 2-6 bullets):**
-  - Unknown — no repro steps captured in evidence
-
-- **Hypothesis / Next test:**
-  - Unknown — insufficient evidence to form testable hypothesis
-
-- **Links:**
-  - Context file: docs/research-briefs/demo-top/ux_friction/context.md
+  - Unknown
+- **Links:** `Demo://rollup`, `docs/research-briefs/demo-top/ux_friction/context.md`, `0001_31e89d3b-7e8b-40d6-9ec1-61a5722a4000.jsonl`
 
 ## 3) Root Cause Analysis (RCA)
 - **Suspected root cause(s) (1-3, falsifiable):**
-  - Unknown — two error strings observed but cause(s) not determinable from available evidence
-
+  - Cron subsystem error path is triggered during task handling/state management, producing 'Cron (error)' messages.
 - **Contributing factors (2-6):**
-  - Unknown — no contextual data (timestamps, request/response details, infrastructure metrics) available
-
+  - Multiple 'Cron (error)' events occur in a single session within minutes.
+  - Message bodies vary ("Got it", "Noted", "I checked memory..."), suggesting inconsistent handling or retries.
 - **Evidence mapping (per cause):**
-  - Evidence available: Two error strings ("502 Bad Gateway", "ERR-INVALID-SESSION")
-  - Evidence gaps: No timestamps, request IDs, session details, infrastructure logs, or sequence information
-
-- **Confidence (per cause):**
-  - Unknown — insufficient data for confidence assessment
-
+  - **Evidence FOR:** canonical_summary cites repeated 'Cron (error)' messages and task/state issues; sample items show multiple timestamps in the same session.
+  - **Evidence AGAINST / gaps:** no stack traces or code pointers; only one session in evidence; no explicit repro steps.
+- **Confidence (per cause):** Low
 - **Validation tests (1-5):**
-  - TBD pending root cause hypothesis formation
+  - Inspect `0001_31e89d3b-7e8b-40d6-9ec1-61a5722a4000.jsonl` around indices 273-365 to confirm trigger sequence for each 'Cron (error)'.
+  - Verify whether a `HEARTBEAT.md` file existed during the session and whether the cron handler attempted to read it.
+  - Attempt a controlled replay of the same system prompts; if 'Cron (error)' repeats, the issue is reproducible; if not, it is transient.
+  - Review `Demo://rollup` for missing metadata (DRI, success metrics, non-goals, repro steps, brief date) and update sections if present.
 
 ## 4) Options (competing paths)
-
-- **Option A (Act):** Implement fixes
-  - Impact: Unknown
-  - Cost/complexity: Unknown
-  - Risk + rollback: Unknown
-  - Time-to-signal: Unknown
-
-- **Option B (Experiment):** Collect additional diagnostic data
-  - Impact: Unknown — depends on instrumentation scope
-  - Cost/complexity: Unknown
-  - Risk + rollback: Unknown
-  - Time-to-signal: Unknown
-
-- **Option C (Defer):** Wait for additional occurrences
-  - Impact: Unknown
-  - Cost/complexity: Low — no engineering effort
-  - Risk + rollback: Unknown — error frequency not established
-  - Time-to-signal: Unknown
+- **Option A (Act):** Fix cron handling during task/state processing to prevent 'Cron (error)' emissions and correctly follow HEARTBEAT instructions.
+  - Impact: Med
+  - Cost/complexity: Med
+  - Risk + rollback/containment: Potential behavior change in cron handling; guard with feature flag if available.
+  - Time-to-signal: medium
+- **Option B (Experiment):** Instrument cron error path and replay the session to isolate triggers and classify the error type.
+  - Impact: Med
+  - Cost/complexity: Low
+  - Risk + rollback/containment: Low risk; logging can be removed after diagnosis.
+  - Time-to-signal: fast
+- **Option C (Defer):** Wait for more sessions or higher severity signals before acting.
+  - Impact: Low
+  - Cost/complexity: Low
+  - Risk + rollback/containment: Risk of continued UX friction; no rollback needed.
+  - Time-to-signal: slow
 
 ## 5) Recommendation (single choice)
-- **Pick one:** Unknown — insufficient evidence to recommend
+- **Pick one:** Experiment
 - **Rationale (3-6 bullets max):**
-  - Only two error strings available as evidence
-  - No contextual data (timestamps, request details, user actions) to establish patterns
-  - Cannot distinguish between transient/one-off issue vs systemic problem
-  - Cannot assess error frequency or user impact beyond single item/session count
-
+  - Evidence is limited to 2 items and 1 session, so scope is unclear.
+  - Error messages vary in content, indicating the trigger is not well understood.
+  - No repro steps or code pointers exist, so instrumentation/replay is the fastest path to clarity.
 - **Plan (next 1-3 actions):**
-  - Identify data sources that could provide additional context (logs, monitoring, user reports)
-  - Determine if additional incidents have occurred outside this rollup window
-  - Define instrumentation requirements if no existing data sources available
-
+  - Inspect the session file around the indexed spans to map trigger -> response (Owner: Unknown).
+  - Add minimal logging around the cron error path or capture extra trace context on the next run (Owner: Unknown).
+  - Update the ticket with findings and define success metrics/scope (Owner: Unknown).
 - **Stop conditions (reversal triggers):**
-  - TBD pending recommendation selection
+  - If inspection shows the messages are synthetic/test artifacts, stop and reclassify.
+  - If a single clear defect is identified, switch to Act.
 
-## 6) Appendix
+## 6) Appendix (optional)
+- 2026-01-31 19:17:37 and 19:17:51 UTC: 'Cron (error)' with "Got it."
+- 2026-01-31 19:24:50 UTC: 'Cron (error)' with "Noted."
+- 2026-01-31 19:25:43 UTC: 'Cron (error)' message notes no extra memory/context beyond the reminder.
 
-- **Evidence trace (verbatim from context.md):**
-  ```
-  ERR-INVALID-SESSION
-  502 Bad Gateway
-  ```
-  Source: docs/research-briefs/demo-top/ux_friction/context.md → Evidence quotes section
-
-- **Rollup metadata:**
-  | Field | Value |
-  |-------|-------|
-  | fingerprint_id | fp1:eca9b274a5cbc2230995a5ddf93652a15552a8a9218347b324f5b51f68fe8614 |
-  | signature_id | sig1:3fe2820a97e430cb282424ed8370886cdee513337efafd9e56864357061e001e |
-  | item_id | sha256:16bb441e21de10d8345aebb4afd0d6e2374fa3dae20f7e5e4fb51dc2fd32fd3a |
-  | kind | ux_friction |
-  | score | 5.89 |
-  | tier | 1 |
-  | tier_reasons | incident, severity:high |
-  | count_items | 1 |
-  | count_sessions | 1 |
-
-  Source: docs/research-briefs/demo-top/ux_friction/context.md
-
-- **Missing data for future instrumentation:**
-  - Request/response details
-  - Timestamps and sequence ordering
-  - Session information beyond error string
-  - Infrastructure/gateway metrics
-  - User workflow context
+---
 
 ## Acceptance checklist (one line)
-BLOCKED: Missing ticket link (placeholder only), no decision statement, evidence limited to 2 error strings, RCA not possible with current data, no tests enumerable, options lack detail, no recommendation rationale possible, owner TBD throughout.
-
-## Filename convention
-- docs/research-briefs/demo-top/ux_friction/context.md
+ACCEPT IF: ticket link + decision statement + evidence + RCA (confidence + tests) + >=2 options + explicit recommendation + next-step owner.

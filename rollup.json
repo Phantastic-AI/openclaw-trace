@@ -1,0 +1,546 @@
+{
+  "summary": {
+    "counts": {
+      "items": 10,
+      "groups": 10
+    },
+    "tiers": {
+      "1": 2,
+      "2": 2,
+      "3": 6
+    }
+  },
+  "rollups": [
+    {
+      "signature_id": "sig1:61442e22b5355623c71dd9fb6526671140857cb52a179432342f99e48b062fde",
+      "signature_text": "error|api_call call_phorge phorge_task task_info info_failed failed_due|api,error,incident,phorge,session",
+      "count_items": 1,
+      "count_sessions": 1,
+      "kind_counts": {
+        "error": 1
+      },
+      "kind_v2_counts": {
+        "defect": 1
+      },
+      "max_severity": "medium",
+      "tier": 1,
+      "tier_reasons": [
+        "incident"
+      ],
+      "score": 4.993147180559945,
+      "tags_top": [
+        [
+          "error",
+          1
+        ],
+        [
+          "api",
+          1
+        ],
+        [
+          "phorge",
+          1
+        ],
+        [
+          "session",
+          1
+        ],
+        [
+          "incident",
+          1
+        ]
+      ],
+      "canonical_summary": "API call to Phorge task info failed due to missing session key despite token presence",
+      "fingerprint_id": "fp1:eb79436250a62bddabbbdbeeed1d2da9a825c7d9bea90b451d9e7f9ab340e140",
+      "fingerprint_text": "defect|api_call call_phorge phorge_task task_info info_failed failed_due|error,api,phorge,session,incident",
+      "sample_refs": [
+        {
+          "item_id": "sha256:65bc0dddf667620d9826ec201a745e622e5e9a2b0e11b628a9b45b120d1ad583",
+          "session_id": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db",
+          "span": {
+            "start_i": 9,
+            "end_i": 11
+          },
+          "source": {
+            "file_hint": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db",
+            "chunk_id": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db/chunk:0"
+          }
+        }
+      ],
+      "sentiment": "neutral",
+      "kind_v2_reason_top": [
+        [
+          "error:defect",
+          1
+        ]
+      ]
+    },
+    {
+      "signature_id": "sig1:cb86157ac200217e2d3426a85ae6e204ada7dda6ca6c29bfd6ba3835816f60ec",
+      "signature_text": "improvement_suggestion|add_diagnostic diagnostic_steps steps_investigating investigating_mattermost mattermost_mobile mobile_notification|improvement_suggestion,incident",
+      "count_items": 1,
+      "count_sessions": 1,
+      "kind_counts": {
+        "improvement_suggestion": 1
+      },
+      "kind_v2_counts": {
+        "ux_friction": 1
+      },
+      "max_severity": "medium",
+      "tier": 1,
+      "tier_reasons": [
+        "incident"
+      ],
+      "score": 4.693147180559945,
+      "tags_top": [
+        [
+          "improvement_suggestion",
+          1
+        ],
+        [
+          "incident",
+          1
+        ]
+      ],
+      "canonical_summary": "Add diagnostic steps for investigating Mattermost mobile notification issues.",
+      "fingerprint_id": "fp1:7b7f41d6c70ce9d9a92fa0935cc9dc5c091526d9c89129006f80ae7dcc9ecd21",
+      "fingerprint_text": "ux_friction|add_diagnostic diagnostic_steps steps_investigating investigating_mattermost mattermost_mobile mobile_notification|improvement_suggestion,incident",
+      "sample_refs": [
+        {
+          "item_id": "sha256:7fd55527751c85abee5f7c33125016b8ff41f9ec1d066f7bf2311203a5e61b15",
+          "session_id": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67",
+          "span": {
+            "start_i": 12,
+            "end_i": 14
+          },
+          "source": {
+            "file_hint": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67",
+            "chunk_id": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67/chunk:0"
+          }
+        }
+      ],
+      "sentiment": "neutral",
+      "kind_v2_reason_top": [
+        [
+          "suggestion:ux_friction",
+          1
+        ]
+      ]
+    },
+    {
+      "signature_id": "sig1:922e51a367238c711fb67211f95c5a7852eb5dffa4f4961bbba71ec80b7bfcb7",
+      "signature_text": "error|error_received received_when when_setting setting_priority priority_numeric numeric_value|",
+      "count_items": 1,
+      "count_sessions": 1,
+      "kind_counts": {
+        "error": 1
+      },
+      "kind_v2_counts": {
+        "defect": 1
+      },
+      "max_severity": "medium",
+      "tier": 2,
+      "tier_reasons": [
+        "kind:error",
+        "severity:medium"
+      ],
+      "score": 2.993147180559945,
+      "tags_top": [],
+      "canonical_summary": "Error received when setting priority to numeric value 80 on task T128",
+      "fingerprint_id": "fp1:2c8f691d53c354ce1ffa158f27c168aecd4c5994f1359fbd8bd596845b77a5cb",
+      "fingerprint_text": "defect|error_received received_when when_setting setting_priority priority_numeric numeric_value|",
+      "sample_refs": [
+        {
+          "item_id": "sha256:910fb0332debd82e0fde763012ea05fa152fbd3dc960c5f313dbfcaf8f92b884",
+          "session_id": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67",
+          "span": {
+            "start_i": 29,
+            "end_i": 29
+          },
+          "source": {
+            "file_hint": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67",
+            "chunk_id": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67/chunk:1"
+          }
+        }
+      ],
+      "sentiment": "neutral",
+      "kind_v2_reason_top": [
+        [
+          "error:defect",
+          1
+        ]
+      ]
+    },
+    {
+      "signature_id": "sig1:9e67d680a9a54e942ea4eb825d949eb31d1174b82acfed0bf68be0b2c1d0ac74",
+      "signature_text": "user_frustration|no_relevant relevant_memory memory_wiki wiki_results results_found found_lucas|knowledge_base,memory,user_frustration,wiki",
+      "count_items": 1,
+      "count_sessions": 1,
+      "kind_counts": {
+        "user_frustration": 1
+      },
+      "kind_v2_counts": {
+        "ux_friction": 1
+      },
+      "max_severity": "low",
+      "tier": 2,
+      "tier_reasons": [
+        "kind:user_frustration"
+      ],
+      "score": 1.8931471805599454,
+      "tags_top": [
+        [
+          "user_frustration",
+          1
+        ],
+        [
+          "knowledge_base",
+          1
+        ],
+        [
+          "memory",
+          1
+        ],
+        [
+          "wiki",
+          1
+        ]
+      ],
+      "canonical_summary": "No relevant memory or wiki results found for Lucas report context, limiting assistant's ability to help",
+      "fingerprint_id": "fp1:1e32a807a1bc9165414f89b86ca5e0edd868741f042108323e8778791d27af38",
+      "fingerprint_text": "ux_friction|no_relevant relevant_memory memory_wiki wiki_results results_found found_lucas|user_frustration,knowledge_base,memory,wiki",
+      "sample_refs": [
+        {
+          "item_id": "sha256:aa5322ad9bf17e340ed020f74f07993015551cc7f4df8ebd9962c790bcb61d4d",
+          "session_id": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db",
+          "span": {
+            "start_i": 15,
+            "end_i": 17
+          },
+          "source": {
+            "file_hint": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db",
+            "chunk_id": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db/chunk:0"
+          }
+        }
+      ],
+      "sentiment": "frustrated",
+      "kind_v2_reason_top": [
+        [
+          "user_frustration:ux_friction",
+          1
+        ]
+      ]
+    },
+    {
+      "signature_id": "sig1:af6c6863d387fd4549d85f7e1697029c9ddcff81b4dc524bdda134a5bd4056aa",
+      "signature_text": "improvement_suggestion|memory_search search_returned returned_no no_results results_margarita margarita_gelata|context,memory,search",
+      "count_items": 1,
+      "count_sessions": 1,
+      "kind_counts": {
+        "improvement_suggestion": 1
+      },
+      "kind_v2_counts": {
+        "ux_friction": 1
+      },
+      "max_severity": "low",
+      "tier": 3,
+      "tier_reasons": [
+        "default"
+      ],
+      "score": 1.6931471805599454,
+      "tags_top": [
+        [
+          "memory",
+          1
+        ],
+        [
+          "search",
+          1
+        ],
+        [
+          "context",
+          1
+        ]
+      ],
+      "canonical_summary": "Memory search returned no results for Margarita Gelata paper review context query.",
+      "fingerprint_id": "fp1:6c3ada50ed6f7746c24c352b2ff175ffe710142f962ce6f464a062fec7b5a2e8",
+      "fingerprint_text": "ux_friction|memory_search search_returned returned_no no_results results_margarita margarita_gelata|memory,search,context",
+      "sample_refs": [
+        {
+          "item_id": "sha256:26a1279d3a922c805adffc9a8bf09df1731b681ac332c65ce2c4467bfa2eb615",
+          "session_id": "sha256:fee6b277def85cbf368ef16cad5255bd91c8ae5b74ffd37275606eede985df4a",
+          "span": {
+            "start_i": 5,
+            "end_i": 5
+          },
+          "source": {
+            "file_hint": "sha256:fee6b277def85cbf368ef16cad5255bd91c8ae5b74ffd37275606eede985df4a",
+            "chunk_id": "sha256:fee6b277def85cbf368ef16cad5255bd91c8ae5b74ffd37275606eede985df4a/chunk:0"
+          }
+        }
+      ],
+      "sentiment": "neutral",
+      "kind_v2_reason_top": [
+        [
+          "suggestion:ux_friction",
+          1
+        ]
+      ]
+    },
+    {
+      "signature_id": "sig1:6da2cf0498eda34a52ad989cac22043bfe94c215c7d5036cf17eebd73583fbd0",
+      "signature_text": "improvement_suggestion|improve_error error_handling handling_api api_calls calls_detect detect_handle|api,error_handling,improvement_suggestion",
+      "count_items": 1,
+      "count_sessions": 1,
+      "kind_counts": {
+        "improvement_suggestion": 1
+      },
+      "kind_v2_counts": {
+        "capability_gap": 1
+      },
+      "max_severity": "low",
+      "tier": 3,
+      "tier_reasons": [
+        "default"
+      ],
+      "score": 1.6931471805599454,
+      "tags_top": [
+        [
+          "improvement_suggestion",
+          1
+        ],
+        [
+          "api",
+          1
+        ],
+        [
+          "error_handling",
+          1
+        ]
+      ],
+      "canonical_summary": "Improve error handling for API calls to detect and handle missing session keys explicitly",
+      "fingerprint_id": "fp1:5971fdce2d293c2a7211757a6e72c7728b3fd482218068c3d592560df9597394",
+      "fingerprint_text": "capability_gap|improve_error error_handling handling_api api_calls calls_detect detect_handle|improvement_suggestion,api,error_handling",
+      "sample_refs": [
+        {
+          "item_id": "sha256:9eac610c56e12c9b0d4bff3186968a6866cbbb156bfdb95de2010761982f711c",
+          "session_id": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db",
+          "span": {
+            "start_i": 9,
+            "end_i": 9
+          },
+          "source": {
+            "file_hint": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db",
+            "chunk_id": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db/chunk:0"
+          }
+        }
+      ],
+      "sentiment": "neutral",
+      "kind_v2_reason_top": [
+        [
+          "suggestion:capability_gap",
+          1
+        ]
+      ]
+    },
+    {
+      "signature_id": "sig1:3ecb352ae0574944958d2f92ae823d04e7d3c95d28f67d4cc5964c303701a45a",
+      "signature_text": "improvement_suggestion|add_fallback fallback_retry retry_logic logic_url url_encoded encoded_parameters|api,curl,improvement_suggestion,url-encoding",
+      "count_items": 1,
+      "count_sessions": 1,
+      "kind_counts": {
+        "improvement_suggestion": 1
+      },
+      "kind_v2_counts": {
+        "ux_friction": 1
+      },
+      "max_severity": "low",
+      "tier": 3,
+      "tier_reasons": [
+        "default"
+      ],
+      "score": 1.6931471805599454,
+      "tags_top": [
+        [
+          "improvement_suggestion",
+          1
+        ],
+        [
+          "api",
+          1
+        ],
+        [
+          "curl",
+          1
+        ],
+        [
+          "url-encoding",
+          1
+        ]
+      ],
+      "canonical_summary": "Add fallback or retry logic with URL-encoded parameters for API calls to improve success rate",
+      "fingerprint_id": "fp1:dfe250e0641ed8eae42b9400006ec7066ffdd098749f471d34be418f80ad1de7",
+      "fingerprint_text": "ux_friction|add_fallback fallback_retry retry_logic logic_url url_encoded encoded_parameters|improvement_suggestion,api,curl,url-encoding",
+      "sample_refs": [
+        {
+          "item_id": "sha256:5a5f53c5b102223345bcf84fdef527086589152465e0d6c8308611eeb4389925",
+          "session_id": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db",
+          "span": {
+            "start_i": 12,
+            "end_i": 12
+          },
+          "source": {
+            "file_hint": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db",
+            "chunk_id": "sha256:be7923dbc2385b7ecc0b1e99c1d71a1b365a2b5fe4878c97906f2c924c2e42db/chunk:0"
+          }
+        }
+      ],
+      "sentiment": "neutral",
+      "kind_v2_reason_top": [
+        [
+          "suggestion:ux_friction",
+          1
+        ]
+      ]
+    },
+    {
+      "signature_id": "sig1:b332bd6b1bc227496f4f21111073e1a5a7ebc641eef2e0eb5c5a043ff7be0286",
+      "signature_text": "improvement_suggestion|clarify_ticket ticket_creation creation_details details_explicit explicit_deadline deadline_calculation|improvement_suggestion",
+      "count_items": 1,
+      "count_sessions": 1,
+      "kind_counts": {
+        "improvement_suggestion": 1
+      },
+      "kind_v2_counts": {
+        "ux_friction": 1
+      },
+      "max_severity": "low",
+      "tier": 3,
+      "tier_reasons": [
+        "default"
+      ],
+      "score": 1.6931471805599454,
+      "tags_top": [
+        [
+          "improvement_suggestion",
+          1
+        ]
+      ],
+      "canonical_summary": "Clarify ticket creation details with explicit deadline calculation and description inclusion.",
+      "fingerprint_id": "fp1:c2908890b3452d920ac5b502a87c30d7e435ad43dde40f876e3a740e22f702b8",
+      "fingerprint_text": "ux_friction|clarify_ticket ticket_creation creation_details details_explicit explicit_deadline deadline_calculation|improvement_suggestion",
+      "sample_refs": [
+        {
+          "item_id": "sha256:93284be7e2ef7ed0f85be3eb826f9288647fcb6ab5c19480c896516488bc07c6",
+          "session_id": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67",
+          "span": {
+            "start_i": 10,
+            "end_i": 10
+          },
+          "source": {
+            "file_hint": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67",
+            "chunk_id": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67/chunk:0"
+          }
+        }
+      ],
+      "sentiment": "neutral",
+      "kind_v2_reason_top": [
+        [
+          "suggestion:ux_friction",
+          1
+        ]
+      ]
+    },
+    {
+      "signature_id": "sig1:a079ab423ac9fd2bfd82e69778018b1b6689e668d0d69e99a9385974c6dc2bb8",
+      "signature_text": "improvement_suggestion|improve_user user_assignment assignment_process process_handling handling_username username_lookup|improvement_suggestion",
+      "count_items": 1,
+      "count_sessions": 1,
+      "kind_counts": {
+        "improvement_suggestion": 1
+      },
+      "kind_v2_counts": {
+        "ux_friction": 1
+      },
+      "max_severity": "low",
+      "tier": 3,
+      "tier_reasons": [
+        "default"
+      ],
+      "score": 1.6931471805599454,
+      "tags_top": [
+        [
+          "improvement_suggestion",
+          1
+        ]
+      ],
+      "canonical_summary": "Improve user assignment process by handling username lookup failures more robustly.",
+      "fingerprint_id": "fp1:bdc9961050fde18fbab25a9f7af6e5e9532db59f5437860219c62db92dfc66c8",
+      "fingerprint_text": "ux_friction|improve_user user_assignment assignment_process process_handling handling_username username_lookup|improvement_suggestion",
+      "sample_refs": [
+        {
+          "item_id": "sha256:c1fea6006a5f2ecfd6382af883be3c71280a10929598abb281f89e83b505f411",
+          "session_id": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67",
+          "span": {
+            "start_i": 16,
+            "end_i": 18
+          },
+          "source": {
+            "file_hint": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67",
+            "chunk_id": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67/chunk:0"
+          }
+        }
+      ],
+      "sentiment": "neutral",
+      "kind_v2_reason_top": [
+        [
+          "suggestion:ux_friction",
+          1
+        ]
+      ]
+    },
+    {
+      "signature_id": "sig1:d63eb1c3b6cd4bd7590d7c099533fd03eaf8ae99f9737e0ade3e747f71784a23",
+      "signature_text": "improvement_suggestion|improve_handling handling_priority priority_values values_accepting accepting_both both_numeric|",
+      "count_items": 1,
+      "count_sessions": 1,
+      "kind_counts": {
+        "improvement_suggestion": 1
+      },
+      "kind_v2_counts": {
+        "ux_friction": 1
+      },
+      "max_severity": "low",
+      "tier": 3,
+      "tier_reasons": [
+        "default"
+      ],
+      "score": 1.6931471805599454,
+      "tags_top": [],
+      "canonical_summary": "Improve handling of priority values by accepting both numeric and keyword inputs",
+      "fingerprint_id": "fp1:6e64128acf22847d6ca3ea4e968d45dbff42cdcf68ee82871b10b85430b8c4e4",
+      "fingerprint_text": "ux_friction|improve_handling handling_priority priority_values values_accepting accepting_both both_numeric|",
+      "sample_refs": [
+        {
+          "item_id": "sha256:82084087eee31c895bd85a85d85ecab7902931945479627309ffa0961ef785a5",
+          "session_id": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67",
+          "span": {
+            "start_i": 29,
+            "end_i": 29
+          },
+          "source": {
+            "file_hint": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67",
+            "chunk_id": "sha256:43d98a94627bbdbd4ccb6ecb882b87d39667a2ad5e8b97af9f7cbd0f17857f67/chunk:1"
+          }
+        }
+      ],
+      "sentiment": "neutral",
+      "kind_v2_reason_top": [
+        [
+          "suggestion:ux_friction",
+          1
+        ]
+      ]
+    }
+  ]
+}
